@@ -34,6 +34,12 @@ SHA-256 checksums. Build it from the repository root so the forecast integration
 source copied into the runtime image; its Dockerfile-specific ignore rules also keep the rest of
 the private theme out of the build context.
 
+`generate-static-feed.mjs` runs the same production service contract once and writes a Pages-ready
+artifact at `dist/api/alchemystic-forecast.json`. The public source repository runs it on a
+three-hour schedule using a standard GitHub-hosted runner. Store-approved interpretations belong in
+`editorial.json`; until an Aspect Arc has approved copy there, the static feed omits it and the
+Shopify section keeps its theme-editor fallback.
+
 Run the current contract tests with:
 
 ```sh

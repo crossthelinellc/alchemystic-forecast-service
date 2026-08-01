@@ -1,0 +1,87 @@
+name: Publish universal forecast
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-forecast.yml'
+      - 'integrations/alchemystic-forecast/**'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out corresponding source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build pinned Swiss Ephemeris
+        run: |
+          git clone https://github.com/aloistr/swisseph.git "$RUNNER_TEMP/swisseph"
+          git -C "$RUNNER_TEMP/swisseph" checkout 175e1fcb3108bcd5c0d146c803f51dcf23508012
+          make -C "$RUNNER_TEMP/swisseph" swetest
+
+      - name: Download and verify ephemeris data
+        run: |
+          mkdir -p "$RUNNER_TEMP/swisseph-ephe"
+          for file in sepl_18.se1 semo_18.se1 seas_18.se1; do
+            curl --fail --location --silent --show-error \
+              "https://raw.githubusercontent.com/aloistr/swisseph/85e65da01dce506bd0ec044ad3e39ab6d144d82b/ephe/${file}" \
+              --output "$RUNNER_TEMP/swisseph-ephe/${file}"
+          done
+          printf '%s  %s\n' \
+            'ca1393ceab3a44fbc895887cf789c68819ae6a1cbc9b22225872dbe4ccd99a66' "$RUNNER_TEMP/swisseph-ephe/sepl_18.se1" \
+            '1ca07bd67c24374d77226180c20a4f9996cba013697894810518e7eb582ca4f7' "$RUNNER_TEMP/swisseph-ephe/semo_18.se1" \
+            'a2cd8fc33807c78ca9a700c91c2e042258b12fc4796519e00781440b5ad8b2e2' "$RUNNER_TEMP/swisseph-ephe/seas_18.se1" \
+            | sha256sum --check --strict
+
+      - name: Verify calculation engine
+        env:
+          SWETEST_BIN: ${{ runner.temp }}/swisseph/swetest
+          SWISSEPH_PATH: ${{ runner.temp }}/swisseph-ephe
+        run: node --test integrations/alchemystic-forecast/*.test.mjs
+
+      - name: Generate static forecast feed
+        env:
+          SWETEST_BIN: ${{ runner.temp }}/swisseph/swetest
+          SWISSEPH_PATH: ${{ runner.temp }}/swisseph-ephe
+          ALCHEMYSTIC_EDITORIAL_PATH: ${{ github.workspace }}/integrations/alchemystic-forecast/editorial.json
+          ALCHEMYSTIC_SOURCE_URL: https://github.com/crossthelinellc/alchemystic-forecast-service
+          ALCHEMYSTIC_OUTPUT_DIR: dist
+        run: node integrations/alchemystic-forecast/generate-static-feed.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload forecast artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Deploy forecast feed
+        id: deployment
+        uses: actions/deploy-pages@v4
