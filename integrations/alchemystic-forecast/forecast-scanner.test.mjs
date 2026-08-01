@@ -41,6 +41,13 @@ test('finds activation, exactitude, and release across a directional aspect arc'
   assert.equal(forecast.arcs[0].moments.activating.slice(0, 10), '2026-01-03');
   assert.equal(forecast.arcs[0].moments.pointOfExactitude.slice(0, 10), '2026-01-11');
   assert.equal(forecast.arcs[0].moments.releasing.slice(0, 10), '2026-01-18');
+  const contactTransitions = forecast.events.filter(({ type }) => type === 'contact_transition');
+  assert.deepEqual(contactTransitions.map(({ fromContact, toContact }) => [fromContact, toContact]), [
+    ['forced', 'direct'],
+    ['direct', 'forced'],
+  ]);
+  assert.equal(contactTransitions[0].timestamp.slice(0, 10), '2026-01-08');
+  assert.equal(contactTransitions[1].timestamp.slice(0, 10), '2026-01-14');
 });
 
 test('uses a seven-day focus inside the configurable sixty-day default scan', async () => {

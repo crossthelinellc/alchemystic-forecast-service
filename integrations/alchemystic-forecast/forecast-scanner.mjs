@@ -77,7 +77,29 @@ export async function scanUniversalForecast({
           current.contact.directImpact ? 'true_aspect_activation' : 'aspect_release',
           boundary,
           refined,
+          {
+            fromContact: previous.contact.kind,
+            toContact: current.contact.directImpact ? refined.contact.kind : current.contact.kind,
+          },
         ));
+      }
+
+      if (
+        previous.contact.directImpact
+        && current.contact.directImpact
+        && previous.contact.kind !== current.contact.kind
+      ) {
+        const boundary = await refineBooleanBoundary({
+          low: timestamps[index - 1],
+          high: timestamp,
+          precisionMs: precisionMinutes * MINUTE_MS,
+          test: async (time) => inspectAt(await snapshotAt(time), firstKey, secondKey).contact.kind === previous.contact.kind,
+        });
+        const refined = inspectAt(await snapshotAt(boundary), firstKey, secondKey);
+        events.push(serializeEvent('contact_transition', boundary, refined, {
+          fromContact: previous.contact.kind,
+          toContact: refined.contact.kind,
+        }));
       }
 
       const next = measurements[index + 1];
@@ -183,7 +205,7 @@ function isExactitudeBracket(previous, current, next) {
     && current.aspect.deviation < next.aspect.deviation;
 }
 
-function serializeEvent(type, timestamp, reading) {
+function serializeEvent(type, timestamp, reading, transition = {}) {
   return {
     type,
     timestamp: new Date(timestamp).toISOString(),
@@ -193,6 +215,7 @@ function serializeEvent(type, timestamp, reading) {
     deviation: reading.aspect.deviation,
     contact: reading.contact.kind,
     forcedBy: reading.contact.forcedBy,
+    ...transition,
   };
 }
 

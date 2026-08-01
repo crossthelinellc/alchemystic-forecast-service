@@ -14,8 +14,11 @@ const completeArc = {
     releasing: '2026-08-05T12:00:00Z',
   },
   events: [
-    { type: 'true_aspect_activation', contact: 'forced' },
-    { type: 'point_of_exactitude', contact: 'direct' },
+    { type: 'true_aspect_activation', contact: 'forced', toContact: 'forced' },
+    { type: 'contact_transition', timestamp: '2026-08-01T18:00:00Z', fromContact: 'forced', toContact: 'direct', contact: 'direct' },
+    { type: 'point_of_exactitude', timestamp: '2026-08-02T12:00:00Z', contact: 'direct' },
+    { type: 'contact_transition', timestamp: '2026-08-03T18:00:00Z', fromContact: 'direct', toContact: 'forced', contact: 'forced' },
+    { type: 'aspect_release', contact: 'fringe', fromContact: 'forced' },
   ],
 };
 
@@ -42,7 +45,13 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].aspect, 'Squares');
   assert.equal(feed.week[0].planetTwo, 'Mercury');
   assert.equal(feed.week[0].currentPhase, 'Activating');
-  assert.equal(feed.week[0].contactType, 'Direct impact');
+  assert.equal(feed.week[0].contactType, 'Forced Aspect');
+  assert.deepEqual(feed.week[0].contactTimeline.map(({ contactType }) => contactType), [
+    'Forced Aspect', 'True Aspect', 'Forced Aspect',
+  ]);
+  assert.equal(feed.week[0].moments.activating.contactType, 'Forced Aspect');
+  assert.equal(feed.week[0].moments.exactitude.contactType, 'True Aspect');
+  assert.equal(feed.week[0].moments.releasing.contactType, 'Forced Aspect');
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
   assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
   assert.equal(feed.week[0].planetOneGlyph, 'P');
@@ -52,7 +61,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.calendar.records.length, 1);
 });
 
-test('labels one-sided OOI contact as a Forced aspect', () => {
+test('labels one-sided OOI contact as a Forced Aspect', () => {
   const feed = buildForecastFeed({
     now: '2026-08-01T12:00:00Z',
     forecast: {
@@ -74,7 +83,7 @@ test('labels one-sided OOI contact as a Forced aspect', () => {
     },
   });
 
-  assert.equal(feed.week[0].contactType, 'Forced aspect');
+  assert.equal(feed.week[0].contactType, 'Forced Aspect');
 });
 
 test('places complete approved arcs after the weekly focus in the rolling calendar', () => {

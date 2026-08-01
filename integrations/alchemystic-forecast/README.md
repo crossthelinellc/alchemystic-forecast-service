@@ -5,7 +5,7 @@ This integration calculates Mystic Rebels' universal forecast using the rules in
 
 `engine.mjs` is deliberately independent of any ephemeris package. An ephemeris adapter supplies
 timestamped tropical longitudes and apparent longitudinal speeds; the engine owns Alchemystic
-direction, OOI, Forced Aspect, Fringe, and Aspect Arc classification.
+direction, OOI, True Aspect, Forced Aspect, Fringe, and Aspect Arc classification.
 
 `forecast-scanner.mjs` samples the complete Universal ecosystem, preserves a seven-day focus inside
 a configurable scan, and refines activation, exactitude, and release timestamps to one minute by
@@ -16,7 +16,7 @@ the prior 30 days through the next 30 days.
 both planets separately, their active Channels, sign Through Points, modern rulers and Delegates,
 then separates the focus planets' direct aspect and rulership **With** layers from indirect,
 concurrent **While** layers. It also groups scanner
-events into Aspect Arc records so Activating, Point of Exactitude, the directional handoff, and
+events into Aspect Arc records so Activating, True Aspect/Forced Aspect shifts, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
 `forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the

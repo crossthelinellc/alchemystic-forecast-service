@@ -76,15 +76,31 @@ function serializeArc(arc, editorial, now, timeZone) {
   if (!moments?.activating || !moments?.pointOfExactitude || !moments?.releasing) return null;
   const hasInterpretation = Boolean(editorial?.interpretation && editorial?.alignment);
 
-  const activating = moment(moments.activating, timeZone);
-  const exactitude = moment(moments.pointOfExactitude, timeZone);
-  const releasing = moment(moments.releasing, timeZone);
+  const activationEvent = arc.events?.find(({ type }) => type === 'true_aspect_activation');
+  const releaseEvent = arc.events?.find(({ type }) => type === 'aspect_release');
+  const transitionEvents = arc.events?.filter(({ type }) => type === 'contact_transition') || [];
+  const activationContact = contactLabel(activationEvent?.toContact || activationEvent?.contact);
+  const finalTransitionContact = transitionEvents.at(-1)?.toContact;
+  const releaseContact = contactLabel(releaseEvent?.fromContact || finalTransitionContact || activationEvent?.contact);
+  const activating = { ...moment(moments.activating, timeZone), contactType: activationContact };
+  const exactitude = { ...moment(moments.pointOfExactitude, timeZone), contactType: 'True Aspect' };
+  const releasing = { ...moment(moments.releasing, timeZone), contactType: releaseContact };
+  const contactTimeline = [
+    { datetime: activating.datetime, dateKey: activating.dateKey, contactType: activationContact },
+    ...transitionEvents.map((event) => ({
+      ...moment(event.timestamp, timeZone),
+      contactType: contactLabel(event.toContact),
+      fromContact: contactLabel(event.fromContact),
+      toContact: contactLabel(event.toContact),
+      forcedBy: event.forcedBy || '',
+    })),
+  ].filter(({ contactType }) => contactType).sort((one, two) => one.datetime.localeCompare(two.datetime));
   const currentPhase = now < toTime(exactitude.datetime)
     ? 'Activating'
     : now < toTime(releasing.datetime) ? 'Point of Exactitude' : 'Releasing';
-  const contact = arc.events?.find(({ type, contact: value }) => (
-    type === 'point_of_exactitude' && value
-  ))?.contact || arc.events?.find(({ contact: value }) => value)?.contact;
+  const currentContactType = contactTimeline.reduce((contactType, entry) => (
+    toTime(entry.datetime) <= now ? entry.contactType : contactType
+  ), contactTimeline[0]?.contactType || 'True Aspect');
 
   return {
     id: [arc.key, exactitude.datetime].join(':'),
@@ -101,7 +117,8 @@ function serializeArc(arc, editorial, now, timeZone) {
     planetTwoGlyph: labelFor(BODY_GLYPHS, arc.planetTwo),
     planetTwoFamily: BODY_FAMILIES[arc.planetTwo] || 'other',
     currentPhase,
-    contactType: contact === 'forced' ? 'Forced aspect' : 'Direct impact',
+    contactType: currentContactType,
+    contactTimeline,
     moments: { activating, exactitude, releasing },
     hasInterpretation,
     interpretation: hasInterpretation ? editorial.interpretation : '',
@@ -117,6 +134,12 @@ function serializeArc(arc, editorial, now, timeZone) {
       endDate: releasing.dateKey,
     },
   };
+}
+
+function contactLabel(contact) {
+  if (contact === 'forced') return 'Forced Aspect';
+  if (contact === 'direct') return 'True Aspect';
+  return '';
 }
 
 function moment(value, timeZone) {
