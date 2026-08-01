@@ -13,7 +13,7 @@ const completeArc = {
     pointOfExactitude: '2026-08-02T12:00:00Z',
     releasing: '2026-08-05T12:00:00Z',
   },
-  events: [{ contact: 'direct_impact' }],
+  events: [{ contact: 'direct' }],
 };
 
 test('presents a complete Aspect Arc without inventing editorial interpretation', () => {
@@ -39,7 +39,27 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].aspect, 'Squares');
   assert.equal(feed.week[0].planetTwo, 'Mercury');
   assert.equal(feed.week[0].currentPhase, 'Activating');
+  assert.equal(feed.week[0].contactType, 'Direct impact');
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
+});
+
+test('labels one-sided OOI contact as a Forced aspect', () => {
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [{ ...completeArc, events: [{ contact: 'forced' }] }],
+    },
+    interpretations: {
+      [completeArc.key]: {
+        interpretation: 'Strategy is pressing on the message.',
+        alignment: 'Make sure the plan and the words solve the same problem.',
+      },
+    },
+  });
+
+  assert.equal(feed.week[0].contactType, 'Forced aspect');
 });
 
 test('omits incomplete arcs and arcs without approved copy', () => {

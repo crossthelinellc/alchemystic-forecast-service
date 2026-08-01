@@ -58,7 +58,7 @@ function serializeArc(arc, editorial, now, timeZone) {
     aspect: labelFor(ASPECT_LABELS, arc.aspect),
     planetTwo: labelFor(BODY_LABELS, arc.planetTwo),
     currentPhase,
-    contactType: contact === 'forced_aspect' ? 'Forced aspect' : 'Direct impact',
+    contactType: contact === 'forced' ? 'Forced aspect' : 'Direct impact',
     moments: { activating, exactitude, releasing },
     interpretation: editorial.interpretation,
     alignment: editorial.alignment,

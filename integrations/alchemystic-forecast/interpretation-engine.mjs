@@ -35,8 +35,7 @@ export function buildUniversalInterpretation({ positions, focus }) {
     requiredPosition(byKey, focus[1]),
   ]);
   const focusKeys = [focusReading.planetOne.key, focusReading.planetTwo.key];
-  const graph = buildConnectionGraph(byKey, relationships);
-  const withKeys = connectedKeys(graph, focusKeys);
+  const withKeys = directlyLinkedKeys(byKey, relationships, focusKeys);
   const whileKeys = [...byKey.keys()].filter((key) => !withKeys.has(key));
 
   return {
@@ -207,36 +206,20 @@ function buildRelationships(positions) {
   return relationships;
 }
 
-function buildConnectionGraph(byKey, relationships) {
-  const graph = new Map([...byKey.keys()].map((key) => [key, new Set()]));
-  const connect = (one, two) => {
-    if (!graph.has(one) || !graph.has(two)) return;
-    graph.get(one).add(two);
-    graph.get(two).add(one);
-  };
-
+function directlyLinkedKeys(byKey, relationships, focusKeys) {
+  const linked = new Set(focusKeys);
   for (const relationship of relationships) {
-    if (relationship.contact.kind !== 'out_of_orb') {
-      connect(relationship.planetOne.key, relationship.planetTwo.key);
-    }
+    if (relationship.contact.kind === 'out_of_orb') continue;
+    const one = relationship.planetOne.key;
+    const two = relationship.planetTwo.key;
+    if (focusKeys.includes(one)) linked.add(two);
+    if (focusKeys.includes(two)) linked.add(one);
   }
 
-  for (const position of byKey.values()) {
-    connect(position.key, zodiacPlacement(position.longitude).signRuler);
+  for (const key of focusKeys) {
+    linked.add(zodiacPlacement(requiredPosition(byKey, key).longitude).signRuler);
   }
-  return graph;
-}
-
-function connectedKeys(graph, startingKeys) {
-  const visited = new Set();
-  const queue = [...startingKeys];
-  while (queue.length) {
-    const key = queue.shift();
-    if (visited.has(key)) continue;
-    visited.add(key);
-    for (const neighbor of graph.get(key) || []) queue.push(neighbor);
-  }
-  return visited;
+  return new Set([...linked].filter((key) => byKey.has(key)));
 }
 
 function describeLayer(key, byKey) {

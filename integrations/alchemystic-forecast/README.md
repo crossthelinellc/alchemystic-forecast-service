@@ -13,7 +13,8 @@ by default.
 
 `interpretation-engine.mjs` builds the mandatory pre-writing context for each transit. It assesses
 both planets separately, their active Channels, sign Through Points, modern rulers and Delegates,
-then separates connected **With** layers from concurrent **While** layers. It also groups scanner
+then separates the focus planets' direct aspect and rulership **With** layers from indirect,
+concurrent **While** layers. It also groups scanner
 events into Aspect Arc records so Activating, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
