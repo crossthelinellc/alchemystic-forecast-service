@@ -12,7 +12,7 @@ test('writes a Pages-ready forecast artifact from the HTTP contract', async () =
     schema: 'mystic-rebels.alchemystic-forecast.v1',
     sourceUrl: 'https://github.com/crossthelinellc/alchemystic-forecast-service',
     week: [],
-    outlook: [],
+    calendar: { records: [] },
   };
   const handler = async (_request, response) => {
     response.writeHead(200);

@@ -44,6 +44,12 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].currentPhase, 'Activating');
   assert.equal(feed.week[0].contactType, 'Direct impact');
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
+  assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
+  assert.equal(feed.week[0].planetOneGlyph, 'P');
+  assert.equal(feed.week[0].aspectGlyph, '□');
+  assert.equal(feed.calendar.range.start, '2026-07-02');
+  assert.equal(feed.calendar.range.end, '2026-08-31');
+  assert.equal(feed.calendar.records.length, 1);
 });
 
 test('labels one-sided OOI contact as a Forced aspect', () => {
@@ -71,8 +77,8 @@ test('labels one-sided OOI contact as a Forced aspect', () => {
   assert.equal(feed.week[0].contactType, 'Forced aspect');
 });
 
-test('places complete approved arcs that activate after the weekly focus in the outlook', () => {
-  const outlookArc = {
+test('places complete approved arcs after the weekly focus in the rolling calendar', () => {
+  const futureArc = {
     ...completeArc,
     key: 'chiron:square:mercury',
     planetOne: 'chiron',
@@ -87,10 +93,10 @@ test('places complete approved arcs that activate after the weekly focus in the 
     forecast: {
       generatedAt: '2026-08-01T12:00:00Z',
       window: { start: '2026-08-01T12:00:00Z' },
-      arcs: [outlookArc],
+      arcs: [futureArc],
     },
     interpretations: {
-      [outlookArc.key]: {
+      [futureArc.key]: {
         interpretation: 'Insecurity is pressing directly into the message.',
         alignment: 'Support the mind instead of letting insecurity run the meeting.',
       },
@@ -98,12 +104,12 @@ test('places complete approved arcs that activate after the weekly focus in the 
   });
 
   assert.deepEqual(feed.week, []);
-  assert.equal(feed.outlook.length, 1);
-  assert.equal(feed.outlook[0].planetOne, 'Chiron');
-  assert.equal(feed.outlook[0].planetTwo, 'Mercury');
+  assert.equal(feed.calendar.records.length, 1);
+  assert.equal(feed.calendar.records[0].planetOne, 'Chiron');
+  assert.equal(feed.calendar.records[0].planetTwo, 'Mercury');
 });
 
-test('omits incomplete arcs and arcs without approved copy', () => {
+test('keeps calculated calendar arcs without inventing copy and omits incomplete arcs', () => {
   const feed = buildForecastFeed({
     now: '2026-08-01T12:00:00Z',
     forecast: {
@@ -115,5 +121,7 @@ test('omits incomplete arcs and arcs without approved copy', () => {
   });
 
   assert.deepEqual(feed.week, []);
-  assert.deepEqual(feed.outlook, []);
+  assert.equal(feed.calendar.records.length, 1);
+  assert.equal(feed.calendar.records[0].hasInterpretation, false);
+  assert.equal(feed.calendar.records[0].interpretation, '');
 });

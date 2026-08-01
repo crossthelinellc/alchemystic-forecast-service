@@ -43,7 +43,7 @@ test('finds activation, exactitude, and release across a directional aspect arc'
   assert.equal(forecast.arcs[0].moments.releasing.slice(0, 10), '2026-01-18');
 });
 
-test('uses a seven-day focus inside the fourteen-day default outlook', async () => {
+test('uses a seven-day focus inside the configurable sixty-day default scan', async () => {
   const forecast = await scanUniversalForecast({
     start,
     bodyKeys: ['mercury', 'saturn'],
@@ -51,5 +51,5 @@ test('uses a seven-day focus inside the fourteen-day default outlook', async () 
   });
 
   assert.equal(forecast.window.focusDays, 7);
-  assert.equal(forecast.window.outlookDays, 14);
+  assert.equal(forecast.window.scanDays, 60);
 });

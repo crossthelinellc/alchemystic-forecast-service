@@ -27,7 +27,7 @@ test('serves a cached, conditional forecast only to Mystic Rebels storefront ori
     loadInterpretations: async () => ({ approved: true }),
     now: () => new Date('2026-08-01T12:00:00Z'),
     scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z', scan: ++scans }),
-    presentForecast: ({ forecast }) => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', scan: forecast.scan, week: [], outlook: [] }),
+    presentForecast: ({ forecast }) => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', scan: forecast.scan, week: [], calendar: { records: [] } }),
   });
 
   const origin = 'https://mysticrebels.com';
@@ -65,7 +65,7 @@ test('coalesces simultaneous cache misses into one forecast calculation', async 
       await new Promise((resolve) => setTimeout(resolve, 10));
       return { window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' };
     },
-    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], outlook: [] }),
+    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } }),
   });
 
   await Promise.all([request(handler), request(handler), request(handler)]);
@@ -88,4 +88,23 @@ test('anchors the forecast day to the configured display timezone', () => {
     startOfDayInTimeZone('2026-01-15T18:00:00Z', 'America/Chicago').toISOString(),
     '2026-01-15T06:00:00.000Z',
   );
+});
+
+test('scans with a thirty-day buffer around the rolling history and future window', async () => {
+  let scanInput;
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({}),
+    now: () => new Date('2026-08-01T12:00:00Z'),
+    scanForecast: async (input) => {
+      scanInput = input;
+      return { window: { start: input.start.toISOString() }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' };
+    },
+    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } }),
+  });
+
+  await request(handler);
+  assert.equal(scanInput.start.toISOString(), '2026-06-02T05:00:00.000Z');
+  assert.equal(scanInput.days, 120);
 });

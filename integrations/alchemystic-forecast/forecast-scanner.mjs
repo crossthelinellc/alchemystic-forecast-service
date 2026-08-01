@@ -11,7 +11,7 @@ const DEFAULT_BODY_KEYS = Object.freeze(Object.keys(BODY_CATALOG));
 
 export async function scanUniversalForecast({
   start,
-  days = 14,
+  days = 60,
   stepHours = 6,
   precisionMinutes = 1,
   bodyKeys = DEFAULT_BODY_KEYS,
@@ -110,7 +110,7 @@ export async function scanUniversalForecast({
       start: new Date(startTime).toISOString(),
       end: new Date(endTime).toISOString(),
       focusDays: Math.min(7, days),
-      outlookDays: days,
+      scanDays: days,
     },
     bodyKeys: requestedKeys,
     events: forecastEvents,

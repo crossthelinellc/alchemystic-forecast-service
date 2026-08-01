@@ -7,9 +7,10 @@ This integration calculates Mystic Rebels' universal forecast using the rules in
 timestamped tropical longitudes and apparent longitudinal speeds; the engine owns Alchemystic
 direction, OOI, Forced Aspect, Fringe, and Aspect Arc classification.
 
-`forecast-scanner.mjs` samples the complete Universal ecosystem, preserves the seven-day focus
-inside the 14-day outlook, and refines activation, exactitude, and release timestamps to one minute
-by default.
+`forecast-scanner.mjs` samples the complete Universal ecosystem, preserves a seven-day focus inside
+a configurable scan, and refines activation, exactitude, and release timestamps to one minute by
+default. The production service scans a buffered 120-day interval so it can emit complete arcs for
+the prior 30 days through the next 30 days.
 
 `interpretation-engine.mjs` builds the mandatory pre-writing context for each transit. It assesses
 both planets separately, their active Channels, sign Through Points, modern rulers and Delegates,
@@ -18,9 +19,11 @@ concurrent **While** layers. It also groups scanner
 events into Aspect Arc records so Activating, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
-`forecast-feed.mjs` converts complete Aspect Arcs and approved editorial interpretations into the
-versioned JSON contract consumed by the Shopify section. It intentionally omits incomplete arcs or
-arcs without approved copy instead of inventing generic forecast language.
+`forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the
+Shopify sections. The homepage `week` collection includes approved editorial interpretations; the
+rolling `calendar` collection retains calculated arcs whether or not editorial copy is available.
+Unapproved records are clearly marked as calculated timing only instead of receiving invented
+forecast language.
 
 `forecast-service.mjs` serves that contract at `/api/alchemystic-forecast`, caches calculations for
 six hours, coalesces simultaneous requests, supports ETags, and restricts browser access to Mystic
@@ -38,8 +41,8 @@ the private theme out of the build context.
 `generate-static-feed.mjs` runs the same production service contract once and writes a Pages-ready
 artifact at `dist/api/alchemystic-forecast.json`. The public source repository runs it on a
 three-hour schedule using a standard GitHub-hosted runner. Store-approved interpretations belong in
-`editorial.json`; until an Aspect Arc has approved copy there, the static feed omits it and the
-Shopify section keeps its theme-editor fallback.
+`editorial.json`; until an Aspect Arc has approved copy there, it remains available as factual
+calendar timing but is not promoted into the interpreted homepage week.
 
 Run the current contract tests with:
 

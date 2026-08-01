@@ -35,10 +35,10 @@ export function createForecastService({
   async function generate() {
     const current = now();
     const focusStart = startOfDayInTimeZone(current, timeZone);
-    const scanStart = new Date(focusStart.getTime() - 14 * DAY_MS);
+    const scanStart = new Date(focusStart.getTime() - 60 * DAY_MS);
     const forecast = await scanForecast({
       start: scanStart,
-      days: 42,
+      days: 120,
       stepHours: 6,
       precisionMinutes: 1,
       positionProvider,
