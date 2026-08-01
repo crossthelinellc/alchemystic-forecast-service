@@ -46,6 +46,17 @@ rolling `calendar` collection retains calculated arcs whether or not editorial c
 Unapproved records are clearly marked as calculated timing only instead of receiving invented
 forecast language.
 
+`interpretation-dossier.mjs` calculates a private, prose-free editorial dossier for every complete
+non-lunar Aspect Arc with an Activating, Exactitude, or Releasing moment inside the current
+seven-day focus. Lunar contacts remain reserved for the separate lunar calendar, while active
+background arcs are already carried inside the relevant With/While layers. Each dossier records
+both planets at Activating, Point of Exactitude, and immediately before Releasing; preserves
+contact changes and
+the directional handoff; carries Inferior/Superior Mercury and Venus fields; and separates With
+from While layers. `generate-editorial-dossiers.mjs` writes that review queue only when given an
+explicit `ALCHEMYSTIC_DOSSIER_OUTPUT_PATH`. The queue is not added to the storefront feed or the
+GitHub Pages artifact.
+
 `forecast-service.mjs` serves that contract at `/api/alchemystic-forecast`, caches calculations for
 six hours, coalesces simultaneous requests, supports ETags, and restricts browser access to Mystic
 Rebels storefront origins. It requires `SWETEST_BIN`, `SWISSEPH_PATH`, and
