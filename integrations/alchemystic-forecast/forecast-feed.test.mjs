@@ -99,9 +99,27 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].planetOneGlyph, 'P');
   assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v3');
   assert.equal(feed.week[0].aspectGlyph, '□');
+  assert.equal(feed.week[0].articleUrl, '');
   assert.equal(feed.calendar.range.start, '2026-07-02');
   assert.equal(feed.calendar.range.end, '2026-08-31');
   assert.equal(feed.calendar.records.length, 1);
+});
+
+test('publishes a Chronicle link only when editorial supplies a specific article URL', () => {
+  const articleUrl = '/blogs/mystic-chronicles/a-selected-transit';
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [completeArc],
+    },
+    interpretations: {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc, { articleUrl }),
+    },
+  });
+
+  assert.equal(feed.week[0].articleUrl, articleUrl);
 });
 
 test('labels one-sided OOI contact as a Forced Aspect', () => {
