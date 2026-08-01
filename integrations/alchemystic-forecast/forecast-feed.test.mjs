@@ -71,6 +71,38 @@ test('labels one-sided OOI contact as a Forced aspect', () => {
   assert.equal(feed.week[0].contactType, 'Forced aspect');
 });
 
+test('places complete approved arcs that activate after the weekly focus in the outlook', () => {
+  const outlookArc = {
+    ...completeArc,
+    key: 'chiron:square:mercury',
+    planetOne: 'chiron',
+    moments: {
+      activating: '2026-08-10T12:00:00Z',
+      pointOfExactitude: '2026-08-12T12:00:00Z',
+      releasing: '2026-08-14T12:00:00Z',
+    },
+  };
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [outlookArc],
+    },
+    interpretations: {
+      [outlookArc.key]: {
+        interpretation: 'Insecurity is pressing directly into the message.',
+        alignment: 'Support the mind instead of letting insecurity run the meeting.',
+      },
+    },
+  });
+
+  assert.deepEqual(feed.week, []);
+  assert.equal(feed.outlook.length, 1);
+  assert.equal(feed.outlook[0].planetOne, 'Chiron');
+  assert.equal(feed.outlook[0].planetTwo, 'Mercury');
+});
+
 test('omits incomplete arcs and arcs without approved copy', () => {
   const feed = buildForecastFeed({
     now: '2026-08-01T12:00:00Z',
