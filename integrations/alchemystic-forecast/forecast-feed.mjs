@@ -1,3 +1,5 @@
+import { INTERPRETATION_VOCABULARY_VERSION } from './interpretation-vocabulary.mjs';
+
 const DAY_MS = 86_400_000;
 const HISTORY_DAYS = 30;
 const FUTURE_DAYS = 30;
@@ -146,7 +148,8 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
 
 export function hasCompleteInterpretationMethod(arc, method, occurrenceId = occurrenceIdFor(arc)) {
   const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
-  return method?.version === 'alchemystic-interpretation.v2'
+  return method?.version === 'alchemystic-interpretation.v3'
+    && method.vocabularyVersion === INTERPRETATION_VOCABULARY_VERSION
     && method.occurrenceId === occurrenceId
     && method.planetOne?.body === arc?.planetOne
     && hasText(method.planetOne.condition)

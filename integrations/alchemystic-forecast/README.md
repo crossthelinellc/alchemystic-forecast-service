@@ -19,15 +19,21 @@ concurrent **While** layers. It also groups scanner
 events into Aspect Arc records so Activating, True Aspect/Forced Aspect shifts, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
+`interpretation-vocabulary.mjs` is the versioned semantic authority used by that plan. It keeps body
+meanings, sign Through Points, ordered from/to aspect roles, contact types, and Aspect Arc phases in
+separate machine-readable records. Forecast prose must be derived from this dossier; generic
+astrology synonyms are not an accepted fallback.
+
 Mercury and Venus use mandatory dual-rulership fields. Mercury's condition culminates everything
 occupying Gemini through Inferior Mercury and everything occupying Virgo through Superior Mercury.
 Venus's condition culminates everything occupying Taurus through Inferior Venus and everything
 occupying Libra through Superior Venus. Each carried condition retains the occupant's motion,
 Through Point, and active Channels; neither ruled-sign field may be omitted before aspect synthesis.
 
-Approved editorial records must carry an `alchemystic-interpretation.v2` method record containing
+Approved editorial records must carry an `alchemystic-interpretation.v3` method record containing
 planet one's assessed condition, planet two's separately assessed condition, and an aspect synthesis
-whose body and aspect keys match the calculated arc. The record is locked to the exact occurrence by
+whose body and aspect keys match the calculated arc, plus the exact vocabulary version used to
+certify those meanings. The record is locked to the exact occurrence by
 the arc's Point of Exactitude, so prose assessed for one occurrence cannot be reused when the same
 bodies form the same aspect again under different conditions. The feed fails closed at the
 interpretation boundary: a missing or mismatched assessment leaves the factual calendar arc

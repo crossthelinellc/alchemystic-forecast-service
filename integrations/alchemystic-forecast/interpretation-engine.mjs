@@ -1,4 +1,5 @@
 import { BODY_CATALOG, inspectRelationship, normalizeLongitude } from './engine.mjs';
+import { vocabularyForInterpretation } from './interpretation-vocabulary.mjs';
 
 export const ZODIAC_SIGNS = Object.freeze([
   { key: 'aries', label: 'Aries', ruler: 'mars' },
@@ -124,6 +125,11 @@ export function buildInterpretationPlan({ context, arc }) {
 
   return {
     transit: `${one}:${context.focus.aspect}:${two}`,
+    vocabulary: vocabularyForInterpretation({
+      planetOne: one,
+      aspect: context.focus.aspect,
+      planetTwo: two,
+    }),
     requiredMoments: {
       activating: {
         timestamp: arc.moments.activating,

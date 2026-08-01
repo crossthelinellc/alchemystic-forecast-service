@@ -1,13 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { BODY_CATALOG } from './engine.mjs';
 import {
   DUAL_RULERSHIP_FIELDS,
+  ZODIAC_SIGNS,
   buildInterpretationPlan,
   buildUniversalInterpretation,
   groupAspectArcs,
   zodiacPlacement,
 } from './interpretation-engine.mjs';
+import {
+  ASPECT_VOCABULARY,
+  BODY_VOCABULARY,
+  CONTACT_VOCABULARY,
+  INTERPRETATION_VOCABULARY_VERSION,
+  PHASE_VOCABULARY,
+  SIGN_VOCABULARY,
+  vocabularyForInterpretation,
+} from './interpretation-vocabulary.mjs';
 
 test('uses modern rulership and treats the sign as a through point', () => {
   assert.deepEqual(zodiacPlacement(301.5), {
@@ -41,6 +52,10 @@ test('creates a mandatory ordered plan before forecast prose can be written', ()
   });
 
   assert.equal(plan.orderedReading[0].step, 'planet_one_condition');
+  assert.equal(plan.vocabulary.version, INTERPRETATION_VOCABULARY_VERSION);
+  assert.equal(plan.vocabulary.planetOne.body, 'pallas');
+  assert.equal(plan.vocabulary.planetTwo.body, 'mercury');
+  assert.equal(plan.vocabulary.aspect.key, 'square');
   assert.equal(plan.orderedReading[1].step, 'planet_two_condition');
   const synthesis = plan.orderedReading[2];
   assert.equal(synthesis.step, 'ordered_aspect_synthesis');
@@ -55,6 +70,70 @@ test('creates a mandatory ordered plan before forecast prose can be written', ()
   assert.equal(plan.requiredMoments.pointOfExactitude.to, 'mercury_to_pallas');
   assert.ok(plan.prohibitions.includes('isolated_aspect_interpretation'));
   assert.ok(plan.prohibitions.includes('unassessed_planet_in_aspect_synthesis'));
+});
+
+test('locks complete body, sign, and aspect vocabularies to the calculation catalogs', () => {
+  assert.deepEqual(Object.keys(BODY_VOCABULARY).sort(), Object.keys(BODY_CATALOG).sort());
+  assert.deepEqual(Object.keys(SIGN_VOCABULARY), ZODIAC_SIGNS.map(({ key }) => key));
+  assert.deepEqual(Object.keys(ASPECT_VOCABULARY), [
+    'conjunction', 'semi_sextile', 'sextile', 'square', 'trine', 'quincunx', 'opposition',
+  ]);
+});
+
+test('keeps Virgo scrutiny and efficiency distinct from Aquarian improvement', () => {
+  const virgo = SIGN_VOCABULARY.virgo;
+  const aquarius = SIGN_VOCABULARY.aquarius;
+  for (const keyword of ['observation', 'criticize', 'scrutinize', 'details', 'efficiency']) {
+    assert.ok(virgo.keywords.includes(keyword));
+  }
+  assert.ok(virgo.exclusions.includes('improve'));
+  assert.ok(virgo.exclusions.includes('improvement'));
+  assert.equal(virgo.keywords.includes('improve'), false);
+  assert.ok(aquarius.keywords.includes('improve'));
+  assert.ok(aquarius.keywords.includes('improvement'));
+});
+
+test('preserves inferior and superior Mercury and Venus as distinct sign expressions', () => {
+  assert.equal(SIGN_VOCABULARY.gemini.expression, 'inferior_mercury');
+  assert.equal(SIGN_VOCABULARY.virgo.expression, 'superior_mercury');
+  assert.equal(SIGN_VOCABULARY.taurus.expression, 'inferior_venus');
+  assert.equal(SIGN_VOCABULARY.libra.expression, 'superior_venus');
+  assert.deepEqual(BODY_VOCABULARY.mercury.requiredExpressions, ['inferior_mercury', 'superior_mercury']);
+  assert.deepEqual(BODY_VOCABULARY.venus.requiredExpressions, ['inferior_venus', 'superior_venus']);
+});
+
+test('makes every major aspect directional instead of applying generic aspect prose', () => {
+  for (const [key, aspect] of Object.entries(ASPECT_VOCABULARY)) {
+    assert.ok(aspect.directional.fromPlanet, `${key} requires a from-planet rule`);
+    assert.ok(aspect.directional.toPlanet, `${key} requires a to-planet rule`);
+    assert.notEqual(aspect.directional.fromPlanet, aspect.directional.toPlanet);
+    assert.ok(aspect.synthesis);
+  }
+  assert.match(ASPECT_VOCABULARY.square.directional.fromPlanet, /usurp|control/);
+  assert.match(ASPECT_VOCABULARY.square.directional.toPlanet, /resists|needs/);
+  assert.match(ASPECT_VOCABULARY.quincunx.synthesis, /Compartmentalize/);
+});
+
+test('locks phase and contact terminology to Alchemystic mechanics', () => {
+  assert.match(PHASE_VOCABULARY.activating.rule, /first moment inside.*OOI/i);
+  assert.match(PHASE_VOCABULARY.point_of_exactitude.rule, /directional handoff/i);
+  assert.match(PHASE_VOCABULARY.releasing.rule, /heightened expression/i);
+  assert.match(CONTACT_VOCABULARY.true_aspect.rule, /Both bodies/);
+  assert.match(CONTACT_VOCABULARY.forced_aspect.rule, /Only one body/);
+  assert.match(CONTACT_VOCABULARY.fringe.interpretation, /never relabel/i);
+});
+
+test('builds a complete ordered vocabulary dossier and rejects unknown keys', () => {
+  const dossier = vocabularyForInterpretation({
+    planetOne: 'pallas', aspect: 'square', planetTwo: 'mercury',
+  });
+  assert.equal(dossier.planetOne.core, 'Creative-strategic pattern recognition');
+  assert.equal(dossier.planetTwo.core, 'Mind');
+  assert.equal(dossier.aspect.core, 'Synchronizing pressure');
+  assert.throws(
+    () => vocabularyForInterpretation({ planetOne: 'pallas', aspect: 'generic', planetTwo: 'mercury' }),
+    /Unknown interpretation vocabulary key/,
+  );
 });
 
 test('assesses each focus planet, its channels, and its ruler before interpretation', () => {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildForecastFeed } from './forecast-feed.mjs';
+import { INTERPRETATION_VOCABULARY_VERSION } from './interpretation-vocabulary.mjs';
 
 const completeArc = {
   key: 'pallas:square:mercury',
@@ -43,7 +44,8 @@ function approvedEditorial(arc, overrides = {}) {
     interpretation: 'Strategy is pressing on the message.',
     alignment: 'Make sure the plan and the words solve the same problem.',
     method: {
-      version: 'alchemystic-interpretation.v2',
+      version: 'alchemystic-interpretation.v3',
+      vocabularyVersion: INTERPRETATION_VOCABULARY_VERSION,
       occurrenceId,
       planetOne: {
         body: arc.planetOne,
@@ -95,7 +97,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
   assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
   assert.equal(feed.week[0].planetOneGlyph, 'P');
-  assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v2');
+  assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v3');
   assert.equal(feed.week[0].aspectGlyph, '□');
   assert.equal(feed.calendar.range.start, '2026-07-02');
   assert.equal(feed.calendar.range.end, '2026-08-31');
@@ -223,6 +225,17 @@ test('suppresses prose unless both planetary conditions feed the matching aspect
       }),
     },
   });
+  const staleVocabulary = buildForecastFeed({
+    ...base,
+    interpretations: {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc, {
+        method: {
+          ...approvedEditorial(completeArc).method,
+          vocabularyVersion: 'alchemystic-vocabulary.stale',
+        },
+      }),
+    },
+  });
 
   assert.equal(missingMethod.week.length, 0);
   assert.equal(missingMethod.calendar.records[0].hasInterpretation, false);
@@ -230,6 +243,8 @@ test('suppresses prose unless both planetary conditions feed the matching aspect
   assert.equal(wrongPlanet.calendar.records[0].hasInterpretation, false);
   assert.equal(incompleteDualRulership.week.length, 0);
   assert.equal(incompleteDualRulership.calendar.records[0].hasInterpretation, false);
+  assert.equal(staleVocabulary.week.length, 0);
+  assert.equal(staleVocabulary.calendar.records[0].hasInterpretation, false);
 });
 
 test('does not reuse one occurrence editorial on a different Aspect Arc occurrence', () => {
