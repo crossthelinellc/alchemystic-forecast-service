@@ -13,7 +13,10 @@ const completeArc = {
     pointOfExactitude: '2026-08-02T12:00:00Z',
     releasing: '2026-08-05T12:00:00Z',
   },
-  events: [{ contact: 'direct' }],
+  events: [
+    { type: 'true_aspect_activation', contact: 'forced' },
+    { type: 'point_of_exactitude', contact: 'direct' },
+  ],
 };
 
 test('presents a complete Aspect Arc without inventing editorial interpretation', () => {
@@ -49,7 +52,13 @@ test('labels one-sided OOI contact as a Forced aspect', () => {
     forecast: {
       generatedAt: '2026-08-01T12:00:00Z',
       window: { start: '2026-08-01T12:00:00Z' },
-      arcs: [{ ...completeArc, events: [{ contact: 'forced' }] }],
+      arcs: [{
+        ...completeArc,
+        events: [
+          { type: 'true_aspect_activation', contact: 'forced' },
+          { type: 'point_of_exactitude', contact: 'forced' },
+        ],
+      }],
     },
     interpretations: {
       [completeArc.key]: {

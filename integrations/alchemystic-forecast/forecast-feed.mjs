@@ -50,7 +50,9 @@ function serializeArc(arc, editorial, now, timeZone) {
   const currentPhase = now < toTime(exactitude.datetime)
     ? 'Activating'
     : now < toTime(releasing.datetime) ? 'Point of Exactitude' : 'Releasing';
-  const contact = arc.events?.find(({ contact }) => contact)?.contact;
+  const contact = arc.events?.find(({ type, contact: value }) => (
+    type === 'point_of_exactitude' && value
+  ))?.contact || arc.events?.find(({ contact: value }) => value)?.contact;
 
   return {
     key: arc.key,
