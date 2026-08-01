@@ -1,0 +1,269 @@
+import { BODY_CATALOG, inspectRelationship, normalizeLongitude } from './engine.mjs';
+
+export const ZODIAC_SIGNS = Object.freeze([
+  { key: 'aries', label: 'Aries', ruler: 'mars' },
+  { key: 'taurus', label: 'Taurus', ruler: 'venus' },
+  { key: 'gemini', label: 'Gemini', ruler: 'mercury' },
+  { key: 'cancer', label: 'Cancer', ruler: 'moon' },
+  { key: 'leo', label: 'Leo', ruler: 'sun' },
+  { key: 'virgo', label: 'Virgo', ruler: 'mercury' },
+  { key: 'libra', label: 'Libra', ruler: 'venus' },
+  { key: 'scorpio', label: 'Scorpio', ruler: 'pluto' },
+  { key: 'sagittarius', label: 'Sagittarius', ruler: 'jupiter' },
+  { key: 'capricorn', label: 'Capricorn', ruler: 'saturn' },
+  { key: 'aquarius', label: 'Aquarius', ruler: 'uranus' },
+  { key: 'pisces', label: 'Pisces', ruler: 'neptune' },
+]);
+
+export function zodiacPlacement(longitude) {
+  const normalized = normalizeLongitude(longitude);
+  const sign = ZODIAC_SIGNS[Math.floor(normalized / 30)];
+  return {
+    sign: sign.key,
+    signLabel: sign.label,
+    signRuler: sign.ruler,
+    degreeInSign: normalized % 30,
+    longitude: normalized,
+  };
+}
+
+export function buildUniversalInterpretation({ positions, focus }) {
+  const byKey = normalizePositions(positions);
+  const relationships = buildRelationships([...byKey.values()]);
+  const focusReading = inspectRelationship([
+    requiredPosition(byKey, focus[0]),
+    requiredPosition(byKey, focus[1]),
+  ]);
+  const focusKeys = [focusReading.planetOne.key, focusReading.planetTwo.key];
+  const graph = buildConnectionGraph(byKey, relationships);
+  const withKeys = connectedKeys(graph, focusKeys);
+  const whileKeys = [...byKey.keys()].filter((key) => !withKeys.has(key));
+
+  return {
+    focus: {
+      planetOne: focusReading.planetOne.key,
+      planetTwo: focusReading.planetTwo.key,
+      aspect: focusReading.aspect.key,
+      contact: focusReading.contact.kind,
+      deviation: focusReading.aspect.deviation,
+    },
+    planetaryCondition: Object.fromEntries(
+      [...byKey.keys()].map((key) => [key, describeCondition(key, byKey, relationships)]),
+    ),
+    thematicLayers: {
+      with: [...withKeys].map((key) => describeLayer(key, byKey)),
+      while: whileKeys.map((key) => describeLayer(key, byKey)),
+    },
+  };
+}
+
+export function groupAspectArcs(events) {
+  const arcs = [];
+  const open = new Map();
+  const sorted = [...events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+  for (const event of sorted) {
+    const key = [event.planetOne, event.aspect, event.planetTwo].join(':');
+    let arc = open.get(key);
+    if (event.type === 'true_aspect_activation' || !arc) {
+      arc = {
+        key,
+        planetOne: event.planetOne,
+        planetTwo: event.planetTwo,
+        aspect: event.aspect,
+        moments: { activating: null, pointOfExactitude: null, releasing: null },
+        events: [],
+      };
+      arcs.push(arc);
+      open.set(key, arc);
+    }
+
+    arc.events.push(event);
+    if (event.type === 'true_aspect_activation') arc.moments.activating = event.timestamp;
+    if (event.type === 'point_of_exactitude') {
+      arc.moments.pointOfExactitude = event.timestamp;
+      arc.handoff = {
+        before: `${event.planetOne}_to_${event.planetTwo}`,
+        after: `${event.planetTwo}_to_${event.planetOne}`,
+      };
+    }
+    if (event.type === 'aspect_release') {
+      arc.moments.releasing = event.timestamp;
+      open.delete(key);
+    }
+  }
+
+  return arcs;
+}
+
+export function buildInterpretationPlan({ context, arc }) {
+  if (!context?.focus || !context?.planetaryCondition) {
+    throw new TypeError('A universal interpretation context is required.');
+  }
+  if (!arc?.moments) throw new TypeError('An Aspect Arc record is required.');
+
+  const one = context.focus.planetOne;
+  const two = context.focus.planetTwo;
+  const oneCondition = context.planetaryCondition[one];
+  const twoCondition = context.planetaryCondition[two];
+  if (!oneCondition || !twoCondition) throw new Error('Both focus planets require condition records.');
+
+  return {
+    transit: `${one}:${context.focus.aspect}:${two}`,
+    requiredMoments: {
+      activating: {
+        timestamp: arc.moments.activating,
+        purpose: 'wake_up_call_and_new_theme_entry',
+      },
+      pointOfExactitude: {
+        timestamp: arc.moments.pointOfExactitude,
+        purpose: 'directional_handoff',
+        from: `${one}_to_${two}`,
+        to: `${two}_to_${one}`,
+      },
+      releasing: {
+        timestamp: arc.moments.releasing,
+        purpose: 'final_heightened_expression_before_dropoff',
+      },
+    },
+    orderedReading: [
+      conditionStep('planet_one_condition', one, oneCondition),
+      conditionStep('planet_two_condition', two, twoCondition),
+      {
+        step: 'ordered_aspect_synthesis',
+        planetOne: one,
+        aspect: context.focus.aspect,
+        planetTwo: two,
+        contact: context.focus.contact,
+      },
+      { step: 'with_layers', bodies: context.thematicLayers.with.map(({ body }) => body) },
+      { step: 'while_layers', bodies: context.thematicLayers.while.map(({ body }) => body) },
+      { step: 'alignment_guidance', requirement: 'specific_practical_non_deterministic' },
+    ],
+    prohibitions: [
+      'isolated_aspect_interpretation',
+      'sign_as_final_destination',
+      'final_dispositor',
+      'merge_while_layers_into_with_theme',
+      'generic_good_bad_scoring',
+    ],
+  };
+}
+
+function describeCondition(key, byKey, relationships) {
+  const position = requiredPosition(byKey, key);
+  const placement = zodiacPlacement(position.longitude);
+  const rulerPosition = byKey.get(placement.signRuler);
+  const channels = relationships
+    .filter((relationship) => relationship.contact.kind !== 'out_of_orb')
+    .filter((relationship) => (
+      relationship.planetOne.key === key || relationship.planetTwo.key === key
+    ))
+    .map((relationship) => ({
+      role: relationship.planetOne.key === key ? 'aspecting' : 'receiving',
+      planetOne: relationship.planetOne.key,
+      planetTwo: relationship.planetTwo.key,
+      aspect: relationship.aspect.key,
+      contact: relationship.contact.kind,
+      deviation: relationship.aspect.deviation,
+    }));
+  const ruledSigns = ZODIAC_SIGNS.filter((sign) => sign.ruler === key).map((sign) => sign.key);
+  const delegatedBodies = [...byKey.values()]
+    .filter((candidate) => ruledSigns.includes(zodiacPlacement(candidate.longitude).sign))
+    .map((candidate) => candidate.key);
+
+  return {
+    body: key,
+    motion: motionFromSpeed(position),
+    throughPoint: placement,
+    direction: rulerPosition ? {
+      ruler: placement.signRuler,
+      placement: zodiacPlacement(rulerPosition.longitude),
+    } : { ruler: placement.signRuler, placement: null },
+    delegate: { ruledSigns, bodiesCarriedForward: delegatedBodies },
+    channels,
+  };
+}
+
+function conditionStep(step, body, condition) {
+  return {
+    step,
+    body,
+    motion: condition.motion,
+    channels: condition.channels,
+    throughPoint: condition.throughPoint,
+    direction: condition.direction,
+    delegate: condition.delegate,
+  };
+}
+
+function buildRelationships(positions) {
+  const relationships = [];
+  for (let first = 0; first < positions.length - 1; first += 1) {
+    for (let second = first + 1; second < positions.length; second += 1) {
+      relationships.push(inspectRelationship([positions[first], positions[second]]));
+    }
+  }
+  return relationships;
+}
+
+function buildConnectionGraph(byKey, relationships) {
+  const graph = new Map([...byKey.keys()].map((key) => [key, new Set()]));
+  const connect = (one, two) => {
+    if (!graph.has(one) || !graph.has(two)) return;
+    graph.get(one).add(two);
+    graph.get(two).add(one);
+  };
+
+  for (const relationship of relationships) {
+    if (relationship.contact.kind !== 'out_of_orb') {
+      connect(relationship.planetOne.key, relationship.planetTwo.key);
+    }
+  }
+
+  for (const position of byKey.values()) {
+    connect(position.key, zodiacPlacement(position.longitude).signRuler);
+  }
+  return graph;
+}
+
+function connectedKeys(graph, startingKeys) {
+  const visited = new Set();
+  const queue = [...startingKeys];
+  while (queue.length) {
+    const key = queue.shift();
+    if (visited.has(key)) continue;
+    visited.add(key);
+    for (const neighbor of graph.get(key) || []) queue.push(neighbor);
+  }
+  return visited;
+}
+
+function describeLayer(key, byKey) {
+  const position = requiredPosition(byKey, key);
+  const placement = zodiacPlacement(position.longitude);
+  return { body: key, sign: placement.sign, ruler: placement.signRuler };
+}
+
+function normalizePositions(positions) {
+  if (!Array.isArray(positions)) throw new TypeError('Positions must be an array.');
+  const byKey = new Map();
+  for (const position of positions) {
+    if (!BODY_CATALOG[position.key]) throw new RangeError(`Unknown Alchemystic body: ${position.key}`);
+    byKey.set(position.key, { ...position, longitude: normalizeLongitude(position.longitude) });
+  }
+  return byKey;
+}
+
+function requiredPosition(byKey, key) {
+  const position = byKey.get(key);
+  if (!position) throw new Error(`Position omitted: ${key}`);
+  return position;
+}
+
+function motionFromSpeed(position) {
+  if (position.key === 'mean_north_node' || position.key === 'mean_south_node') return 'retrograde';
+  if (position.key === 'sun' || position.key === 'moon') return 'prograde';
+  if (Math.abs(position.speed) <= 0.0001) return 'stationary_inertial';
+  return position.speed < 0 ? 'retrograde' : 'prograde';
+}

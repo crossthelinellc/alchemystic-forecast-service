@@ -1,0 +1,162 @@
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { pathToFileURL } from 'node:url';
+
+import { buildForecastFeed } from './forecast-feed.mjs';
+import { scanUniversalForecast } from './forecast-scanner.mjs';
+import { calculateSwissPositions } from './swetest-provider.mjs';
+
+const DAY_MS = 86_400_000;
+const DEFAULT_CACHE_MS = 6 * 60 * 60 * 1000;
+const ALLOWED_ORIGINS = new Set([
+  'https://mysticrebels.com',
+  'https://www.mysticrebels.com',
+  'https://mysticrebels.myshopify.com',
+]);
+
+export function createForecastService({
+  positionProvider,
+  loadInterpretations,
+  scanForecast = scanUniversalForecast,
+  presentForecast = buildForecastFeed,
+  now = () => new Date(),
+  cacheTtlMs = DEFAULT_CACHE_MS,
+  timeZone = 'America/Chicago',
+  sourceUrl,
+}) {
+  if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
+  if (typeof loadInterpretations !== 'function') throw new TypeError('An interpretation loader is required.');
+  assertPublicSourceUrl(sourceUrl);
+
+  let cached = null;
+  let pending = null;
+
+  async function generate() {
+    const current = now();
+    const focusStart = startOfUtcDay(current);
+    const scanStart = new Date(focusStart.getTime() - 14 * DAY_MS);
+    const forecast = await scanForecast({
+      start: scanStart,
+      days: 42,
+      stepHours: 6,
+      precisionMinutes: 1,
+      positionProvider,
+    });
+    const feed = presentForecast({
+      forecast,
+      interpretations: await loadInterpretations(),
+      now: focusStart,
+      timeZone,
+    });
+    return { ...feed, sourceUrl };
+  }
+
+  async function getPayload() {
+    const currentTime = now().getTime();
+    if (cached && currentTime < cached.expiresAt) return cached;
+    if (!pending) {
+      pending = generate().then((feed) => {
+        const body = JSON.stringify(feed);
+        cached = {
+          body,
+          etag: `"${createHash('sha256').update(body).digest('base64url')}"`,
+          expiresAt: now().getTime() + cacheTtlMs,
+        };
+        return cached;
+      }).finally(() => { pending = null; });
+    }
+    return pending;
+  }
+
+  return async function handle(request, response) {
+    const url = new URL(request.url, 'http://forecast.local');
+    const origin = request.headers.origin;
+    if (origin && ALLOWED_ORIGINS.has(origin)) response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Vary', 'Origin');
+
+    if (request.method === 'OPTIONS') {
+      response.writeHead(origin && !ALLOWED_ORIGINS.has(origin) ? 403 : 204, {
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Accept',
+      });
+      response.end();
+      return;
+    }
+
+    if (request.method !== 'GET') return json(response, 405, { error: 'Method not allowed' });
+    if (url.pathname === '/healthz') return json(response, 200, { status: 'ok' });
+    if (url.pathname === '/source') {
+      response.writeHead(302, { Location: sourceUrl });
+      response.end();
+      return;
+    }
+    if (url.pathname !== '/api/alchemystic-forecast') return json(response, 404, { error: 'Not found' });
+    if (origin && !ALLOWED_ORIGINS.has(origin)) return json(response, 403, { error: 'Origin not allowed' });
+
+    try {
+      const payload = await getPayload();
+      response.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
+      response.setHeader('Content-Type', 'application/json; charset=utf-8');
+      response.setHeader('ETag', payload.etag);
+      if (request.headers['if-none-match'] === payload.etag) {
+        response.writeHead(304);
+        response.end();
+        return;
+      }
+      response.writeHead(200);
+      response.end(payload.body);
+    } catch (error) {
+      console.error('Alchemystic forecast generation failed.', error);
+      json(response, 503, { error: 'Forecast temporarily unavailable' });
+    }
+  };
+}
+
+export function createProductionService(env = process.env) {
+  const binaryPath = requiredEnvironment(env, 'SWETEST_BIN');
+  const ephemerisPath = requiredEnvironment(env, 'SWISSEPH_PATH');
+  const sourceUrl = requiredEnvironment(env, 'ALCHEMYSTIC_SOURCE_URL');
+  const editorialJson = env.ALCHEMYSTIC_EDITORIAL_JSON;
+  const editorialPath = env.ALCHEMYSTIC_EDITORIAL_PATH;
+  if (!editorialJson && !editorialPath) {
+    throw new Error('ALCHEMYSTIC_EDITORIAL_JSON or ALCHEMYSTIC_EDITORIAL_PATH is required.');
+  }
+  return createForecastService({
+    sourceUrl,
+    positionProvider: (at) => calculateSwissPositions({ at, binaryPath, ephemerisPath }),
+    loadInterpretations: async () => JSON.parse(editorialJson || await readFile(editorialPath, 'utf8')),
+  });
+}
+
+function startOfUtcDay(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) throw new TypeError('The service clock returned an invalid date.');
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function requiredEnvironment(env, key) {
+  if (!env[key]) throw new Error(`${key} is required.`);
+  return env[key];
+}
+
+function assertPublicSourceUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new TypeError('A public HTTPS corresponding-source URL is required.');
+  }
+  if (url.protocol !== 'https:') throw new TypeError('The corresponding-source URL must use HTTPS.');
+}
+
+function json(response, status, body) {
+  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  response.end(JSON.stringify(body));
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  const port = Number(process.env.PORT || 8787);
+  const server = createServer(createProductionService());
+  server.listen(port, () => console.log(`Alchemystic forecast service listening on ${port}`));
+}
