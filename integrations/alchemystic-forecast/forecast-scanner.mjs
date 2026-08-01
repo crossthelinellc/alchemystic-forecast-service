@@ -80,6 +80,8 @@ export async function scanUniversalForecast({
           {
             fromContact: previous.contact.kind,
             toContact: current.contact.directImpact ? refined.contact.kind : current.contact.kind,
+            fromForcedBy: previous.contact.forcedBy,
+            toForcedBy: current.contact.directImpact ? refined.contact.forcedBy : current.contact.forcedBy,
           },
         ));
       }
@@ -99,6 +101,8 @@ export async function scanUniversalForecast({
         events.push(serializeEvent('contact_transition', boundary, refined, {
           fromContact: previous.contact.kind,
           toContact: refined.contact.kind,
+          fromForcedBy: previous.contact.forcedBy,
+          toForcedBy: refined.contact.forcedBy,
         }));
       }
 
@@ -213,6 +217,10 @@ function serializeEvent(type, timestamp, reading, transition = {}) {
     planetTwo: reading.planetTwo.key,
     aspect: reading.aspect.key,
     deviation: reading.aspect.deviation,
+    exactAspectAngle: reading.aspect.angle,
+    angularSeparation: reading.aspect.angle + reading.signedDeviation,
+    planetOneOoi: reading.planetOne.ooi,
+    planetTwoOoi: reading.planetTwo.ooi,
     contact: reading.contact.kind,
     forcedBy: reading.contact.forcedBy,
     ...transition,

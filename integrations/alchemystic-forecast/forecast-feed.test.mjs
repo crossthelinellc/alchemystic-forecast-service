@@ -16,9 +16,9 @@ const completeArc = {
   },
   events: [
     { type: 'true_aspect_activation', contact: 'forced', toContact: 'forced' },
-    { type: 'contact_transition', timestamp: '2026-08-01T18:00:00Z', fromContact: 'forced', toContact: 'direct', contact: 'direct' },
+    { type: 'contact_transition', timestamp: '2026-08-01T18:00:00Z', fromContact: 'forced', toContact: 'direct', contact: 'direct', fromForcedBy: 'mercury', deviation: 1, exactAspectAngle: 90, angularSeparation: 89, planetOneOoi: 1, planetTwoOoi: 3 },
     { type: 'point_of_exactitude', timestamp: '2026-08-02T12:00:00Z', contact: 'direct' },
-    { type: 'contact_transition', timestamp: '2026-08-03T18:00:00Z', fromContact: 'direct', toContact: 'forced', contact: 'forced' },
+    { type: 'contact_transition', timestamp: '2026-08-03T18:00:00Z', fromContact: 'direct', toContact: 'forced', contact: 'forced', toForcedBy: 'mercury', deviation: 1, exactAspectAngle: 90, angularSeparation: 91, planetOneOoi: 1, planetTwoOoi: 3 },
     { type: 'aspect_release', contact: 'fringe', fromContact: 'forced' },
   ],
 };
@@ -90,6 +90,19 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].contactType, 'Forced Aspect');
   assert.deepEqual(feed.week[0].contactTimeline.map(({ contactType }) => contactType), [
     'Forced Aspect', 'True Aspect', 'Forced Aspect',
+  ]);
+  assert.deepEqual(feed.week[0].contactTimeline.slice(1).map((entry) => ({
+    side: entry.side,
+    fromForcedBy: entry.fromForcedBy,
+    toForcedBy: entry.toForcedBy,
+    deviation: entry.deviation,
+    exactAspectAngle: entry.exactAspectAngle,
+    angularSeparation: entry.angularSeparation,
+    planetOneOoi: entry.planetOneOoi,
+    planetTwoOoi: entry.planetTwoOoi,
+  })), [
+    { side: 'applying', fromForcedBy: 'mercury', toForcedBy: '', deviation: 1, exactAspectAngle: 90, angularSeparation: 89, planetOneOoi: 1, planetTwoOoi: 3 },
+    { side: 'separating', fromForcedBy: '', toForcedBy: 'mercury', deviation: 1, exactAspectAngle: 90, angularSeparation: 91, planetOneOoi: 1, planetTwoOoi: 3 },
   ]);
   assert.equal(feed.week[0].moments.activating.contactType, 'Forced Aspect');
   assert.equal(feed.week[0].moments.exactitude.contactType, 'True Aspect');

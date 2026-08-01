@@ -48,6 +48,16 @@ test('finds activation, exactitude, and release across a directional aspect arc'
   ]);
   assert.equal(contactTransitions[0].timestamp.slice(0, 10), '2026-01-08');
   assert.equal(contactTransitions[1].timestamp.slice(0, 10), '2026-01-14');
+  assert.equal(contactTransitions[0].fromForcedBy, 'saturn');
+  assert.equal(contactTransitions[0].toForcedBy, null);
+  assert.equal(contactTransitions[1].fromForcedBy, null);
+  assert.equal(contactTransitions[1].toForcedBy, 'saturn');
+  assert.equal(contactTransitions[0].planetOneOoi, 3);
+  assert.equal(contactTransitions[0].planetTwoOoi, 7.5);
+  assert.ok(Math.abs(contactTransitions[0].deviation - 3) < 0.001);
+  assert.ok(Math.abs(contactTransitions[0].angularSeparation - 63) < 0.001);
+  assert.ok(Math.abs(contactTransitions[1].angularSeparation - 57) < 0.001);
+  assert.equal(contactTransitions[0].exactAspectAngle, 60);
 });
 
 test('uses a seven-day focus inside the configurable sixty-day default scan', async () => {

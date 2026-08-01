@@ -97,11 +97,20 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
   const contactTimeline = [
     { datetime: activating.datetime, dateKey: activating.dateKey, contactType: activationContact },
     ...transitionEvents.map((event) => ({
+      id: `${occurrenceId}:contact-shift:${event.timestamp}`,
       ...moment(event.timestamp, timeZone),
       contactType: contactLabel(event.toContact),
       fromContact: contactLabel(event.fromContact),
       toContact: contactLabel(event.toContact),
       forcedBy: event.forcedBy || '',
+      fromForcedBy: event.fromForcedBy || '',
+      toForcedBy: event.toForcedBy || event.forcedBy || '',
+      deviation: finiteNumber(event.deviation),
+      exactAspectAngle: finiteNumber(event.exactAspectAngle),
+      angularSeparation: finiteNumber(event.angularSeparation),
+      planetOneOoi: finiteNumber(event.planetOneOoi),
+      planetTwoOoi: finiteNumber(event.planetTwoOoi),
+      side: toTime(event.timestamp) < toTime(moments.pointOfExactitude) ? 'applying' : 'separating',
     })),
   ].filter(({ contactType }) => contactType).sort((one, two) => one.datetime.localeCompare(two.datetime));
   const currentPhase = now < toTime(exactitude.datetime)
@@ -221,6 +230,10 @@ function dateKey(value, timeZone) {
 
 function labelFor(labels, key) {
   return labels[key] || String(key).replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function finiteNumber(value) {
+  return Number.isFinite(value) ? value : null;
 }
 
 function toTime(value) {
