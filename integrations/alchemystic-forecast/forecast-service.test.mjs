@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createForecastService } from './forecast-service.mjs';
+import { createForecastService, startOfDayInTimeZone } from './forecast-service.mjs';
 
 async function request(handler, { url = '/api/alchemystic-forecast', method = 'GET', headers = {} } = {}) {
   const response = {
@@ -77,4 +77,15 @@ test('refuses to initialize without a public HTTPS corresponding-source location
     positionProvider: async () => ({ positions: [] }),
     loadInterpretations: async () => ({}),
   }), /public HTTPS/);
+});
+
+test('anchors the forecast day to the configured display timezone', () => {
+  assert.equal(
+    startOfDayInTimeZone('2026-08-01T03:29:00Z', 'America/Chicago').toISOString(),
+    '2026-07-31T05:00:00.000Z',
+  );
+  assert.equal(
+    startOfDayInTimeZone('2026-01-15T18:00:00Z', 'America/Chicago').toISOString(),
+    '2026-01-15T06:00:00.000Z',
+  );
 });

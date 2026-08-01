@@ -34,7 +34,7 @@ export function createForecastService({
 
   async function generate() {
     const current = now();
-    const focusStart = startOfUtcDay(current);
+    const focusStart = startOfDayInTimeZone(current, timeZone);
     const scanStart = new Date(focusStart.getTime() - 14 * DAY_MS);
     const forecast = await scanForecast({
       start: scanStart,
@@ -129,10 +129,37 @@ export function createProductionService(env = process.env) {
   });
 }
 
-function startOfUtcDay(value) {
+export function startOfDayInTimeZone(value, timeZone) {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) throw new TypeError('The service clock returned an invalid date.');
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = dateParts(date, timeZone);
+  const wallClockMidnight = Date.UTC(day.year, day.month - 1, day.day);
+  let result = wallClockMidnight - offsetAt(new Date(wallClockMidnight), timeZone);
+  result = wallClockMidnight - offsetAt(new Date(result), timeZone);
+  return new Date(result);
+}
+
+function dateParts(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, year: 'numeric', month: 'numeric', day: 'numeric',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return { year: Number(values.year), month: Number(values.month), day: Number(values.day) };
+}
+
+function offsetAt(date, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  const representedAsUtc = Date.UTC(
+    Number(values.year), Number(values.month) - 1, Number(values.day),
+    Number(values.hour), Number(values.minute), Number(values.second),
+  );
+  return representedAsUtc - date.getTime();
 }
 
 function requiredEnvironment(env, key) {
