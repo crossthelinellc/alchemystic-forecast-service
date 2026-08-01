@@ -106,6 +106,8 @@ export function buildInterpretationPlan({ context, arc }) {
   const oneCondition = context.planetaryCondition[one];
   const twoCondition = context.planetaryCondition[two];
   if (!oneCondition || !twoCondition) throw new Error('Both focus planets require condition records.');
+  const planetOneStep = conditionStep('planet_one_condition', one, oneCondition);
+  const planetTwoStep = conditionStep('planet_two_condition', two, twoCondition);
 
   return {
     transit: `${one}:${context.focus.aspect}:${two}`,
@@ -126,14 +128,19 @@ export function buildInterpretationPlan({ context, arc }) {
       },
     },
     orderedReading: [
-      conditionStep('planet_one_condition', one, oneCondition),
-      conditionStep('planet_two_condition', two, twoCondition),
+      planetOneStep,
+      planetTwoStep,
       {
         step: 'ordered_aspect_synthesis',
         planetOne: one,
         aspect: context.focus.aspect,
         planetTwo: two,
         contact: context.focus.contact,
+        inputs: {
+          planetOneCondition: planetOneStep,
+          planetTwoCondition: planetTwoStep,
+        },
+        requirement: 'apply_aspect_to_both_assessed_planetary_conditions',
       },
       { step: 'with_layers', bodies: context.thematicLayers.with.map(({ body }) => body) },
       { step: 'while_layers', bodies: context.thematicLayers.while.map(({ body }) => body) },
@@ -145,6 +152,7 @@ export function buildInterpretationPlan({ context, arc }) {
       'final_dispositor',
       'merge_while_layers_into_with_theme',
       'generic_good_bad_scoring',
+      'unassessed_planet_in_aspect_synthesis',
     ],
   };
 }

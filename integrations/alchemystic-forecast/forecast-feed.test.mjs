@@ -22,6 +22,20 @@ const completeArc = {
   ],
 };
 
+function approvedEditorial(arc, overrides = {}) {
+  return {
+    interpretation: 'Strategy is pressing on the message.',
+    alignment: 'Make sure the plan and the words solve the same problem.',
+    method: {
+      version: 'alchemystic-interpretation.v1',
+      planetOne: { body: arc.planetOne, condition: 'Planet one was assessed independently.' },
+      planetTwo: { body: arc.planetTwo, condition: 'Planet two was assessed independently.' },
+      aspect: { type: arc.aspect, synthesis: 'The aspect was applied to both assessed conditions.' },
+    },
+    ...overrides,
+  };
+}
+
 test('presents a complete Aspect Arc without inventing editorial interpretation', () => {
   const feed = buildForecastFeed({
     now: '2026-08-01T12:00:00Z',
@@ -32,10 +46,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
       arcs: [completeArc],
     },
     interpretations: {
-      [completeArc.key]: {
-        interpretation: 'Strategy is pressing on the message.',
-        alignment: 'Make sure the plan and the words solve the same problem.',
-      },
+      [completeArc.key]: approvedEditorial(completeArc),
     },
   });
 
@@ -55,6 +66,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
   assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
   assert.equal(feed.week[0].planetOneGlyph, 'P');
+  assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v1');
   assert.equal(feed.week[0].aspectGlyph, '□');
   assert.equal(feed.calendar.range.start, '2026-07-02');
   assert.equal(feed.calendar.range.end, '2026-08-31');
@@ -76,10 +88,7 @@ test('labels one-sided OOI contact as a Forced Aspect', () => {
       }],
     },
     interpretations: {
-      [completeArc.key]: {
-        interpretation: 'Strategy is pressing on the message.',
-        alignment: 'Make sure the plan and the words solve the same problem.',
-      },
+      [completeArc.key]: approvedEditorial(completeArc),
     },
   });
 
@@ -105,10 +114,10 @@ test('places complete approved arcs after the weekly focus in the rolling calend
       arcs: [futureArc],
     },
     interpretations: {
-      [futureArc.key]: {
+      [futureArc.key]: approvedEditorial(futureArc, {
         interpretation: 'Insecurity is pressing directly into the message.',
         alignment: 'Support the mind instead of letting insecurity run the meeting.',
-      },
+      }),
     },
   });
 
@@ -133,4 +142,40 @@ test('keeps calculated calendar arcs without inventing copy and omits incomplete
   assert.equal(feed.calendar.records.length, 1);
   assert.equal(feed.calendar.records[0].hasInterpretation, false);
   assert.equal(feed.calendar.records[0].interpretation, '');
+});
+
+test('suppresses prose unless both planetary conditions feed the matching aspect synthesis', () => {
+  const base = {
+    now: '2026-08-01T12:00:00Z',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [completeArc],
+    },
+  };
+  const missingMethod = buildForecastFeed({
+    ...base,
+    interpretations: {
+      [completeArc.key]: {
+        interpretation: 'An unverified isolated aspect meaning.',
+        alignment: 'This must not be published.',
+      },
+    },
+  });
+  const wrongPlanet = buildForecastFeed({
+    ...base,
+    interpretations: {
+      [completeArc.key]: approvedEditorial(completeArc, {
+        method: {
+          ...approvedEditorial(completeArc).method,
+          planetTwo: { body: 'venus', condition: 'The wrong second planet.' },
+        },
+      }),
+    },
+  });
+
+  assert.equal(missingMethod.week.length, 0);
+  assert.equal(missingMethod.calendar.records[0].hasInterpretation, false);
+  assert.equal(wrongPlanet.week.length, 0);
+  assert.equal(wrongPlanet.calendar.records[0].hasInterpretation, false);
 });

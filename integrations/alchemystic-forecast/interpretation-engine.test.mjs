@@ -41,9 +41,15 @@ test('creates a mandatory ordered plan before forecast prose can be written', ()
 
   assert.equal(plan.orderedReading[0].step, 'planet_one_condition');
   assert.equal(plan.orderedReading[1].step, 'planet_two_condition');
+  const synthesis = plan.orderedReading[2];
+  assert.equal(synthesis.step, 'ordered_aspect_synthesis');
+  assert.equal(synthesis.requirement, 'apply_aspect_to_both_assessed_planetary_conditions');
+  assert.strictEqual(synthesis.inputs.planetOneCondition, plan.orderedReading[0]);
+  assert.strictEqual(synthesis.inputs.planetTwoCondition, plan.orderedReading[1]);
   assert.equal(plan.requiredMoments.pointOfExactitude.from, 'pallas_to_mercury');
   assert.equal(plan.requiredMoments.pointOfExactitude.to, 'mercury_to_pallas');
   assert.ok(plan.prohibitions.includes('isolated_aspect_interpretation'));
+  assert.ok(plan.prohibitions.includes('unassessed_planet_in_aspect_synthesis'));
 });
 
 test('assesses each focus planet, its channels, and its ruler before interpretation', () => {

@@ -74,7 +74,11 @@ export function buildForecastFeed({ forecast, interpretations, now, timeZone = '
 function serializeArc(arc, editorial, now, timeZone) {
   const moments = arc?.moments;
   if (!moments?.activating || !moments?.pointOfExactitude || !moments?.releasing) return null;
-  const hasInterpretation = Boolean(editorial?.interpretation && editorial?.alignment);
+  const hasInterpretation = Boolean(
+    editorial?.interpretation
+    && editorial?.alignment
+    && hasCompleteInterpretationMethod(arc, editorial.method)
+  );
 
   const activationEvent = arc.events?.find(({ type }) => type === 'true_aspect_activation');
   const releaseEvent = arc.events?.find(({ type }) => type === 'aspect_release');
@@ -124,6 +128,7 @@ function serializeArc(arc, editorial, now, timeZone) {
     interpretation: hasInterpretation ? editorial.interpretation : '',
     alignment: hasInterpretation ? editorial.alignment : '',
     conditionSummary: hasInterpretation ? editorial.conditionSummary || '' : '',
+    interpretationMethod: hasInterpretation ? editorial.method.version : '',
     articleUrl: hasInterpretation ? editorial.articleUrl || '' : '',
     range: {
       start: activating.datetime,
@@ -134,6 +139,17 @@ function serializeArc(arc, editorial, now, timeZone) {
       endDate: releasing.dateKey,
     },
   };
+}
+
+export function hasCompleteInterpretationMethod(arc, method) {
+  const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+  return method?.version === 'alchemystic-interpretation.v1'
+    && method.planetOne?.body === arc?.planetOne
+    && hasText(method.planetOne.condition)
+    && method.planetTwo?.body === arc?.planetTwo
+    && hasText(method.planetTwo.condition)
+    && method.aspect?.type === arc?.aspect
+    && hasText(method.aspect.synthesis);
 }
 
 function contactLabel(contact) {

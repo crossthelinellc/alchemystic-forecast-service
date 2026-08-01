@@ -19,6 +19,12 @@ concurrent **While** layers. It also groups scanner
 events into Aspect Arc records so Activating, True Aspect/Forced Aspect shifts, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
+Approved editorial records must carry an `alchemystic-interpretation.v1` method record containing
+planet one's assessed condition, planet two's separately assessed condition, and an aspect synthesis
+whose body and aspect keys match the calculated arc. The feed fails closed at the interpretation
+boundary: a missing or mismatched assessment leaves the factual calendar arc available but suppresses
+the prose. This prevents an isolated aspect meaning from being presented as an Alchemystic reading.
+
 `forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the
 Shopify sections. The homepage `week` collection includes approved editorial interpretations; the
 rolling `calendar` collection retains calculated arcs whether or not editorial copy is available.
