@@ -1,73 +1,129 @@
 {
-  "venus:square:mean_black_moon_lilith": {
-    "interpretation": "What is valuable, workable, or worth keeping is running headfirst into the thing you want but may still feel guilty for wanting. Venus is moving through Virgo, so the instinct is to scrutinize every detail, criticize what does not function, or make it efficient; Mean Lilith in Sagittarius wants enough room to tell the truth without asking permission. At exactitude, the forbidden want stops looking like the interruption and becomes the information Venus has to work with.",
+  "venus:square:mean_black_moon_lilith:2026-08-02T00:29:46.937Z": {
+    "interpretation": "What is valuable, workable, or worth keeping is running headfirst into the thing you want but may still feel guilty for wanting. Venus is moving through Virgo, so it scrutinizes the details, criticizes what does not function, and looks for efficiency. But Venus is also carrying both signs it rules: Chiron retrograde in Taurus is already inside the personal-value field, while Libra waits empty until Venus enters it before release. Mean Lilith in Sagittarius wants enough room to tell the truth without asking permission. At exactitude, the forbidden want stops looking like the interruption and becomes information Venus has to work with; after Venus reaches Libra, the question becomes what can actually be exchanged or lived in relationship.",
     "alignment": "Do not throw away the plan, relationship, or resource just to feel free—and do not polish the life out of what you actually want. Name the desire, then give it a form you can live with.",
-    "conditionSummary": "Venus in Virgo directs through Mercury in Cancer. Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo.",
+    "conditionSummary": "Venus in Virgo directs through Mercury in Cancer and culminates Chiron retrograde in Taurus through Inferior Venus. Its Superior Venus field activates when Venus enters Libra before release. Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo.",
     "articleUrl": "/blogs/mystic-chronicles/venus-squares-mean-lilith-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
-      "planetOne": { "body": "venus", "condition": "Venus in Virgo directs through Mercury in Cancer, applying relational and personal value through scrutiny, details, function, and efficiency." },
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "venus:square:mean_black_moon_lilith:2026-08-02T00:29:46.937Z",
+      "planetOne": {
+        "body": "venus",
+        "condition": "Venus in Virgo directs through Mercury in Cancer. Chiron retrograde in Taurus culminates through Inferior Venus throughout the arc; the Superior Venus field becomes occupied when Venus enters Libra before release.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "taurus", "expression": "inferior_venus", "conditions": { "activating": ["chiron"], "exactitude": ["chiron"], "releasing": ["chiron"] } },
+            { "sign": "libra", "expression": "superior_venus", "conditions": { "activating": [], "exactitude": [], "releasing": ["venus"] } }
+          ]
+        }
+      },
       "planetTwo": { "body": "mean_black_moon_lilith", "condition": "Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo, carrying the forbidden want toward truth, room, and visible expression." },
       "aspect": { "type": "square", "synthesis": "The Square applies friction between Venus's assessed value-and-function condition and Lilith's assessed unrestricted-desire condition, then reverses directional emphasis at exactitude." }
     }
   },
-  "pallas:square:mercury": {
-    "interpretation": "Pallas sees the pattern and wants to move before the room has caught up. In Aries, the strategy is immediate; Mercury in Cancer still needs the message to make emotional sense. Pallas directs through Mars in Gemini, so the solution wants words, options, and movement—but Mercury directs through the Moon in Aries, which means those words still have to be honest enough to act on.",
+  "pallas:square:mercury:2026-08-03T23:09:10.976Z": {
+    "interpretation": "Pallas sees the pattern and wants to move before the room has caught up. In Aries, the strategy is immediate; Mercury in Cancer still needs the message to make emotional sense. Mercury is carrying far more than its own sign: Inferior Mercury gathers Mars, Uranus, and Ceres in Gemini, while Superior Mercury gathers Venus and the Mean South Node in Virgo. The message therefore contains movement, disruption, care, value, scrutiny, and what is already being released before Pallas ever Squares it. At exactitude, the strategy stops leading the message. Mercury has to decide what all of that information is actually saying.",
     "alignment": "Pause before proving the clever answer. Say what the plan is protecting, then make sure the strategy and the message solve the same problem.",
-    "conditionSummary": "Pallas in Aries directs through Mars in Gemini. Mercury in Cancer directs through the Moon in Aries.",
+    "conditionSummary": "Pallas in Aries directs through Mars in Gemini. Mercury in Cancer directs through the Moon in Aries while culminating Mars, Uranus, and Ceres in Gemini through Inferior Mercury, and Venus with the Mean South Node in Virgo through Superior Mercury.",
     "articleUrl": "/blogs/mystic-chronicles/pallas-squares-mercury-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "pallas:square:mercury:2026-08-03T23:09:10.976Z",
       "planetOne": { "body": "pallas", "condition": "Pallas in Aries directs through Mars in Gemini, making strategy immediate, verbal, mobile, and option-aware." },
-      "planetTwo": { "body": "mercury", "condition": "Mercury in Cancer directs through the Moon in Aries, requiring the message to process feeling and safety before it can act honestly." },
+      "planetTwo": {
+        "body": "mercury",
+        "condition": "Mercury in Cancer directs through the Moon in Aries and culminates the complete Gemini and Virgo fields before receiving Pallas's Square.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "gemini", "expression": "inferior_mercury", "conditions": { "activating": ["mars", "uranus", "ceres"], "exactitude": ["mars", "uranus", "ceres"], "releasing": ["mars", "uranus", "ceres"] } },
+            { "sign": "virgo", "expression": "superior_mercury", "conditions": { "activating": ["venus", "mean_south_node"], "exactitude": ["venus", "mean_south_node"], "releasing": ["venus", "mean_south_node"] } }
+          ]
+        }
+      },
       "aspect": { "type": "square", "synthesis": "The Square applies friction between Pallas's assessed immediate strategy and Mercury's assessed emotionally processed message, then hands the emphasis from strategy to message at exactitude." }
     }
   },
-  "saturn:trine:sun": {
+  "saturn:trine:sun:2026-08-07T02:44:03.517Z": {
     "interpretation": "Saturn retrograde in Aries is sending unfinished work around authority, structure, and responsibility straight into the Sun in Leo. A Trine does not ask permission; whatever Saturn is carrying flows directly into purpose, visibility, and vitality. At exactitude, the emphasis turns: purpose can no longer be the result of the structure—it has to become the reason the structure exists.",
     "alignment": "Notice which rule, responsibility, or long-term goal is dimming the thing it was supposed to support. Rebuild from purpose outward, and give the work a structure that can actually carry it.",
     "conditionSummary": "Saturn retrograde in Aries directs through Mars in Gemini. The Sun is in Leo and directs through itself.",
     "articleUrl": "/blogs/mystic-chronicles/saturn-trines-sun-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "saturn:trine:sun:2026-08-07T02:44:03.517Z",
       "planetOne": { "body": "saturn", "condition": "Saturn retrograde in Aries carries unfinished authority, structure, responsibility, and rules through Mars." },
       "planetTwo": { "body": "sun", "condition": "The Sun in Leo is self-directed vitality, purpose, visibility, and authentic creative presence." },
       "aspect": { "type": "trine", "synthesis": "The Trine applies unimpeded flow from Saturn's assessed unfinished structure into the Sun's assessed purpose, then reverses emphasis so purpose directs structure after exactitude." }
     }
   },
-  "chiron:square:mercury": {
-    "interpretation": "Chiron retrograde in Taurus is pushing the part of the mind that still thinks an idea has to prove its value before it gets to exist straight into Mercury. When this activates, Mercury is finishing Cancer and directing through the Moon in Gemini, so memory, feeling, and too many possible explanations are all sitting in the data. By exactitude Mercury has moved into Leo and directs through the Sun in Leo. The handoff is not ‘I finally found the perfect explanation.’ It is the point where the message has to decide what it is here to express. Chiron’s insecurity stops steering the thought; Mercury’s purpose starts telling Chiron what is worth making real.",
+  "chiron:square:mercury:2026-08-10T05:15:34.011Z": {
+    "interpretation": "Chiron retrograde in Taurus is pushing the part of the mind that still thinks an idea has to prove its value before it gets to exist straight into Mercury. At activation, Mercury is finishing Cancer, but its full condition also culminates the Moon, Mars, Uranus, and Ceres in Gemini through Inferior Mercury and the Mean South Node in Virgo through Superior Mercury. By exactitude the Moon has moved on, Mercury has entered Leo, and Mars is about to leave Gemini; the mind is not holding the same field it held at activation. The handoff is not ‘I found the perfect explanation.’ It is the moment Mercury must choose what remains worth expressing after the noise, motion, disruption, care, and old scrutiny have all been accounted for.",
     "alignment": "Notice where you are editing the life out of an idea because you expect it to be challenged. Give Mercury clean facts, then let the message be visible before it is bulletproof. Support the mind; do not let insecurity run the meeting.",
-    "conditionSummary": "Chiron retrograde in Taurus directs through Venus in Libra. Mercury activates in Cancer through the Moon in Gemini, then enters Leo and directs through the Sun in Leo before exactitude. Uranus is already opening a live channel into Mercury as this Square tightens.",
+    "conditionSummary": "Chiron retrograde in Taurus directs through Venus in Libra. Mercury moves from Cancer through the Moon into Leo through the Sun. Its Inferior Mercury field changes from Moon, Mars, Uranus, and Ceres at activation to Uranus and Ceres at release; its Superior Mercury field carries the Mean South Node throughout.",
     "articleUrl": "/blogs/mystic-chronicles/chiron-squares-mercury-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "chiron:square:mercury:2026-08-10T05:15:34.011Z",
       "planetOne": { "body": "chiron", "condition": "Chiron retrograde in Taurus directs through Venus in Libra, carrying insecurity around whether an idea has enough value to exist." },
-      "planetTwo": { "body": "mercury", "condition": "Mercury moves from Cancer through the Moon in Gemini into Leo through the Sun, shifting the message from memory and competing explanations toward visible purpose." },
+      "planetTwo": {
+        "body": "mercury",
+        "condition": "Mercury moves from Cancer through the Moon into Leo through the Sun while its Gemini field loses the Moon and Mars across the arc and its Virgo field continues carrying the Mean South Node.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "gemini", "expression": "inferior_mercury", "conditions": { "activating": ["moon", "mars", "uranus", "ceres"], "exactitude": ["mars", "uranus", "ceres"], "releasing": ["uranus", "ceres"] } },
+            { "sign": "virgo", "expression": "superior_mercury", "conditions": { "activating": ["mean_south_node"], "exactitude": ["mean_south_node"], "releasing": ["mean_south_node"] } }
+          ]
+        }
+      },
       "aspect": { "type": "square", "synthesis": "The Square applies friction between Chiron's assessed value insecurity and Mercury's changing mental condition, then hands directional emphasis from insecurity to purposeful expression at exactitude." }
     }
   },
-  "uranus:sextile:mercury": {
-    "interpretation": "Uranus in Gemini is bringing the sideways answer straight to Mercury in Leo. The breakthrough is not short on ideas; it is short on a decision about which idea deserves a voice. Because this is a Sextile, innovation and the mind can work productively, but they will not run themselves. At exactitude, Mercury is also carrying Neptune’s Trine and facing Pluto by Opposition, so the new thought arrives with intuition and depth attached. The handoff asks the message to lead the innovation: stop chasing novelty and choose the version that can actually say what you mean.",
+  "uranus:sextile:mercury:2026-08-12T20:47:49.824Z": {
+    "interpretation": "Uranus in Gemini is bringing the sideways answer straight to Mercury in Leo—but Uranus is also inside Mercury's Inferior field. At activation, Mercury culminates Mars, Uranus, and Ceres in Gemini and the Mean South Node in Virgo; Mars leaves first, then Ceres, so the field narrows toward Uranus as the arc releases. Mercury is also carrying Neptune’s Trine and Pluto’s Opposition. The Sextile can make the new thought usable, but it will not run itself. At exactitude, the message takes the lead: stop chasing every available variation and choose the innovation that can actually say what you mean.",
     "alignment": "Capture the strange idea before you explain it away. Then make it usable: one message, one experiment, one real-world change. If it only shocks the room, it is unfinished.",
-    "conditionSummary": "Uranus in Gemini directs through Mercury in Leo and carries Pluto in Aquarius as Delegate. Mercury in Leo directs through the Sun in Leo. Neptune is Trining Mercury and Mercury is Opposing Pluto as Uranus reaches exactitude.",
+    "conditionSummary": "Uranus in Gemini directs through Mercury in Leo and carries Pluto in Aquarius as Delegate. Mercury in Leo directs through the Sun while culminating Mars, Uranus, and Ceres in Gemini at activation, Uranus and Ceres at exactitude, Uranus at release, and the Mean South Node in Virgo throughout.",
     "articleUrl": "/blogs/mystic-chronicles/uranus-sextiles-mercury-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "uranus:sextile:mercury:2026-08-12T20:47:49.824Z",
       "planetOne": { "body": "uranus", "condition": "Uranus in Gemini directs through Mercury in Leo and carries Pluto in Aquarius as Delegate, bringing innovation through ideas, voice, and systemic depth." },
-      "planetTwo": { "body": "mercury", "condition": "Mercury in Leo directs through the Sun in Leo while receiving Neptune and opposing Pluto, so the message carries imagination, depth, purpose, and pressure." },
+      "planetTwo": {
+        "body": "mercury",
+        "condition": "Mercury in Leo directs through the Sun while receiving Neptune and opposing Pluto. Its Gemini culmination narrows from Mars, Uranus, and Ceres to Uranus; its Virgo field carries the Mean South Node throughout.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "gemini", "expression": "inferior_mercury", "conditions": { "activating": ["mars", "uranus", "ceres"], "exactitude": ["uranus", "ceres"], "releasing": ["uranus"] } },
+            { "sign": "virgo", "expression": "superior_mercury", "conditions": { "activating": ["mean_south_node"], "exactitude": ["mean_south_node"], "releasing": ["mean_south_node"] } }
+          ]
+        }
+      },
       "aspect": { "type": "sextile", "synthesis": "The Sextile applies productive opportunity between Uranus's assessed innovation and Mercury's assessed message, requiring participation before Mercury takes directional emphasis at exactitude." }
     }
   },
-  "neptune:trine:mercury": {
-    "interpretation": "Neptune retrograde in Aries does not ask Mercury whether the signal is convenient; a Trine sends it through. A hunch, image, fear, or creative thread can land in the mind fast enough to feel like fact. Neptune begins directing through Mars in Gemini, so the unknown arrives as movement, options, and mental noise; by exactitude Mars has entered Cancer, and the direction becomes more protective and memory-loaded. Mercury in Leo wants the message to mean something. At the handoff, the mind is no longer merely receiving the unknown—it starts giving it a story. That story still needs evidence.",
+  "neptune:trine:mercury:2026-08-12T03:38:39.787Z": {
+    "interpretation": "Neptune retrograde in Aries does not ask Mercury whether the signal is convenient; a Trine sends it through. A hunch, image, fear, or creative thread can land in the mind fast enough to feel like fact. But Mercury's condition is larger than Mercury in Leo: at activation it culminates Mars, Uranus, and Ceres in Gemini and the Mean South Node in Virgo. Mars leaves Gemini before exactitude, Ceres leaves before release, and the Moon enters Virgo late in the arc. The mind receiving Neptune is changing underneath the signal. At the handoff, Mercury starts giving the unknown a story—but that story must separate what arrived, what was already leaving, and what the new details actually support.",
     "alignment": "Write down what arrives, but do not crown it truth on impact. Separate the signal, the feeling, and the fact. Use the inspiration; verify the conclusion.",
-    "conditionSummary": "Neptune retrograde in Aries directs through Mars, which moves from Gemini into Cancer during the arc. Mercury in Leo directs through the Sun in Leo. Uranus is Sextiling Mercury and Mercury is Opposing Pluto as Neptune reaches exactitude.",
+    "conditionSummary": "Neptune retrograde in Aries directs through Mars as Mars moves from Gemini into Cancer. Mercury in Leo directs through the Sun while culminating Mars, Uranus, and Ceres in Gemini at activation, Uranus and Ceres at exactitude, Uranus at release, the Mean South Node in Virgo throughout, and the Moon in Virgo at release.",
     "articleUrl": "/blogs/mystic-chronicles/neptune-trines-mercury-august-2026",
     "method": {
-      "version": "alchemystic-interpretation.v1",
+      "version": "alchemystic-interpretation.v2",
+      "occurrenceId": "neptune:trine:mercury:2026-08-12T03:38:39.787Z",
       "planetOne": { "body": "neptune", "condition": "Neptune retrograde in Aries directs through Mars as Mars moves from Gemini into Cancer, carrying the unknown through mental motion before becoming protective and memory-loaded." },
-      "planetTwo": { "body": "mercury", "condition": "Mercury in Leo directs through the Sun while receiving Uranus and opposing Pluto, giving the message visible purpose alongside innovation and depth pressure." },
+      "planetTwo": {
+        "body": "mercury",
+        "condition": "Mercury in Leo directs through the Sun while receiving Uranus and opposing Pluto. Its Gemini field loses Mars and Ceres across the arc; its Virgo field carries the Mean South Node and receives the Moon before release.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "gemini", "expression": "inferior_mercury", "conditions": { "activating": ["mars", "uranus", "ceres"], "exactitude": ["uranus", "ceres"], "releasing": ["uranus"] } },
+            { "sign": "virgo", "expression": "superior_mercury", "conditions": { "activating": ["mean_south_node"], "exactitude": ["mean_south_node"], "releasing": ["moon", "mean_south_node"] } }
+          ]
+        }
+      },
       "aspect": { "type": "trine", "synthesis": "The Trine applies direct flow from Neptune's assessed signal condition into Mercury's assessed message condition, then hands interpretive direction to Mercury at exactitude without treating inspiration as verified fact." }
     }
   }

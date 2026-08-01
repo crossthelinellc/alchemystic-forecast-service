@@ -25,11 +25,14 @@ Venus's condition culminates everything occupying Taurus through Inferior Venus 
 occupying Libra through Superior Venus. Each carried condition retains the occupant's motion,
 Through Point, and active Channels; neither ruled-sign field may be omitted before aspect synthesis.
 
-Approved editorial records must carry an `alchemystic-interpretation.v1` method record containing
+Approved editorial records must carry an `alchemystic-interpretation.v2` method record containing
 planet one's assessed condition, planet two's separately assessed condition, and an aspect synthesis
-whose body and aspect keys match the calculated arc. The feed fails closed at the interpretation
-boundary: a missing or mismatched assessment leaves the factual calendar arc available but suppresses
-the prose. This prevents an isolated aspect meaning from being presented as an Alchemystic reading.
+whose body and aspect keys match the calculated arc. The record is locked to the exact occurrence by
+the arc's Point of Exactitude, so prose assessed for one occurrence cannot be reused when the same
+bodies form the same aspect again under different conditions. The feed fails closed at the
+interpretation boundary: a missing or mismatched assessment leaves the factual calendar arc
+available but suppresses the prose. This prevents an isolated or stale aspect meaning from being
+presented as an Alchemystic reading.
 
 `forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the
 Shopify sections. The homepage `week` collection includes approved editorial interpretations; the

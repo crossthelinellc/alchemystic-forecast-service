@@ -49,7 +49,10 @@ export function buildForecastFeed({ forecast, interpretations, now, timeZone = '
   const calendarStart = currentTime - HISTORY_DAYS * DAY_MS;
   const calendarEnd = currentTime + FUTURE_DAYS * DAY_MS;
   const records = forecast.arcs
-    .map((arc) => serializeArc(arc, interpretations[arc.key], currentTime, timeZone))
+    .map((arc) => {
+      const occurrenceId = occurrenceIdFor(arc);
+      return serializeArc(arc, interpretations[occurrenceId], currentTime, timeZone, occurrenceId);
+    })
     .filter(Boolean)
     .filter(({ range }) => toTime(range.end) >= calendarStart && toTime(range.start) <= calendarEnd)
     .sort((one, two) => one.range.focus.localeCompare(two.range.focus));
@@ -71,13 +74,13 @@ export function buildForecastFeed({ forecast, interpretations, now, timeZone = '
   };
 }
 
-function serializeArc(arc, editorial, now, timeZone) {
+function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceIdFor(arc)) {
   const moments = arc?.moments;
   if (!moments?.activating || !moments?.pointOfExactitude || !moments?.releasing) return null;
   const hasInterpretation = Boolean(
     editorial?.interpretation
     && editorial?.alignment
-    && hasCompleteInterpretationMethod(arc, editorial.method)
+    && hasCompleteInterpretationMethod(arc, editorial.method, occurrenceId)
   );
 
   const activationEvent = arc.events?.find(({ type }) => type === 'true_aspect_activation');
@@ -107,7 +110,7 @@ function serializeArc(arc, editorial, now, timeZone) {
   ), contactTimeline[0]?.contactType || 'True Aspect');
 
   return {
-    id: [arc.key, exactitude.datetime].join(':'),
+    id: occurrenceId,
     key: arc.key,
     planetOneKey: arc.planetOne,
     planetOne: labelFor(BODY_LABELS, arc.planetOne),
@@ -141,15 +144,50 @@ function serializeArc(arc, editorial, now, timeZone) {
   };
 }
 
-export function hasCompleteInterpretationMethod(arc, method) {
+export function hasCompleteInterpretationMethod(arc, method, occurrenceId = occurrenceIdFor(arc)) {
   const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
-  return method?.version === 'alchemystic-interpretation.v1'
+  return method?.version === 'alchemystic-interpretation.v2'
+    && method.occurrenceId === occurrenceId
     && method.planetOne?.body === arc?.planetOne
     && hasText(method.planetOne.condition)
     && method.planetTwo?.body === arc?.planetTwo
     && hasText(method.planetTwo.condition)
     && method.aspect?.type === arc?.aspect
-    && hasText(method.aspect.synthesis);
+    && hasText(method.aspect.synthesis)
+    && dualRulershipMethodComplete(arc?.planetOne, method.planetOne)
+    && dualRulershipMethodComplete(arc?.planetTwo, method.planetTwo);
+}
+
+function dualRulershipMethodComplete(body, condition) {
+  const expected = body === 'mercury'
+    ? [['gemini', 'inferior_mercury'], ['virgo', 'superior_mercury']]
+    : body === 'venus'
+      ? [['taurus', 'inferior_venus'], ['libra', 'superior_venus']]
+      : null;
+  if (!expected) return true;
+  const requiredPhases = ['activating', 'exactitude', 'releasing'];
+  const phases = condition.dualRulership?.phases;
+  const fields = condition.dualRulership?.fields;
+  return Array.isArray(phases)
+    && phases.length === requiredPhases.length
+    && requiredPhases.every((phase) => phases.includes(phase))
+    && fields?.length === expected.length
+    && expected.every(([sign, expression]) => fields?.some((field) => (
+      field.sign === sign
+      && field.expression === expression
+      && requiredPhases.every((phase) => (
+        Array.isArray(field.conditions?.[phase])
+        && field.conditions[phase].every((bodyKey) => typeof bodyKey === 'string' && bodyKey.length > 0)
+      ))
+    )));
+}
+
+function occurrenceIdFor(arc) {
+  const exactitude = arc?.moments?.pointOfExactitude;
+  if (!exactitude) return '';
+  const instant = new Date(exactitude);
+  if (Number.isNaN(instant.getTime())) return '';
+  return [arc.key, instant.toISOString()].join(':');
 }
 
 function contactLabel(contact) {

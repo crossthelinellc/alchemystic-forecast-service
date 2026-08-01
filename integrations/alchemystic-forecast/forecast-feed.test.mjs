@@ -23,17 +23,46 @@ const completeArc = {
 };
 
 function approvedEditorial(arc, overrides = {}) {
+  const occurrenceId = occurrenceIdFor(arc);
+  const dualRulership = (body) => {
+    const fields = body === 'mercury'
+      ? [['gemini', 'inferior_mercury'], ['virgo', 'superior_mercury']]
+      : body === 'venus'
+        ? [['taurus', 'inferior_venus'], ['libra', 'superior_venus']]
+        : null;
+    return fields ? {
+      phases: ['activating', 'exactitude', 'releasing'],
+      fields: fields.map(([sign, expression]) => ({
+        sign,
+        expression,
+        conditions: { activating: [], exactitude: [], releasing: [] },
+      })),
+    } : undefined;
+  };
   return {
     interpretation: 'Strategy is pressing on the message.',
     alignment: 'Make sure the plan and the words solve the same problem.',
     method: {
-      version: 'alchemystic-interpretation.v1',
-      planetOne: { body: arc.planetOne, condition: 'Planet one was assessed independently.' },
-      planetTwo: { body: arc.planetTwo, condition: 'Planet two was assessed independently.' },
+      version: 'alchemystic-interpretation.v2',
+      occurrenceId,
+      planetOne: {
+        body: arc.planetOne,
+        condition: 'Planet one was assessed independently.',
+        dualRulership: dualRulership(arc.planetOne),
+      },
+      planetTwo: {
+        body: arc.planetTwo,
+        condition: 'Planet two was assessed independently.',
+        dualRulership: dualRulership(arc.planetTwo),
+      },
       aspect: { type: arc.aspect, synthesis: 'The aspect was applied to both assessed conditions.' },
     },
     ...overrides,
   };
+}
+
+function occurrenceIdFor(arc) {
+  return [arc.key, new Date(arc.moments.pointOfExactitude).toISOString()].join(':');
 }
 
 test('presents a complete Aspect Arc without inventing editorial interpretation', () => {
@@ -46,7 +75,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
       arcs: [completeArc],
     },
     interpretations: {
-      [completeArc.key]: approvedEditorial(completeArc),
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc),
     },
   });
 
@@ -66,7 +95,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
   assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
   assert.equal(feed.week[0].planetOneGlyph, 'P');
-  assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v1');
+  assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v2');
   assert.equal(feed.week[0].aspectGlyph, '□');
   assert.equal(feed.calendar.range.start, '2026-07-02');
   assert.equal(feed.calendar.range.end, '2026-08-31');
@@ -88,7 +117,7 @@ test('labels one-sided OOI contact as a Forced Aspect', () => {
       }],
     },
     interpretations: {
-      [completeArc.key]: approvedEditorial(completeArc),
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc),
     },
   });
 
@@ -114,7 +143,7 @@ test('places complete approved arcs after the weekly focus in the rolling calend
       arcs: [futureArc],
     },
     interpretations: {
-      [futureArc.key]: approvedEditorial(futureArc, {
+      [occurrenceIdFor(futureArc)]: approvedEditorial(futureArc, {
         interpretation: 'Insecurity is pressing directly into the message.',
         alignment: 'Support the mind instead of letting insecurity run the meeting.',
       }),
@@ -156,7 +185,7 @@ test('suppresses prose unless both planetary conditions feed the matching aspect
   const missingMethod = buildForecastFeed({
     ...base,
     interpretations: {
-      [completeArc.key]: {
+      [occurrenceIdFor(completeArc)]: {
         interpretation: 'An unverified isolated aspect meaning.',
         alignment: 'This must not be published.',
       },
@@ -165,10 +194,31 @@ test('suppresses prose unless both planetary conditions feed the matching aspect
   const wrongPlanet = buildForecastFeed({
     ...base,
     interpretations: {
-      [completeArc.key]: approvedEditorial(completeArc, {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc, {
         method: {
           ...approvedEditorial(completeArc).method,
           planetTwo: { body: 'venus', condition: 'The wrong second planet.' },
+        },
+      }),
+    },
+  });
+  const incompleteDualRulership = buildForecastFeed({
+    ...base,
+    interpretations: {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc, {
+        method: {
+          ...approvedEditorial(completeArc).method,
+          planetTwo: {
+            ...approvedEditorial(completeArc).method.planetTwo,
+            dualRulership: {
+              phases: ['activating', 'exactitude', 'releasing'],
+              fields: [{
+                sign: 'gemini',
+                expression: 'inferior_mercury',
+                conditions: { activating: [], exactitude: [], releasing: [] },
+              }],
+            },
+          },
         },
       }),
     },
@@ -178,4 +228,33 @@ test('suppresses prose unless both planetary conditions feed the matching aspect
   assert.equal(missingMethod.calendar.records[0].hasInterpretation, false);
   assert.equal(wrongPlanet.week.length, 0);
   assert.equal(wrongPlanet.calendar.records[0].hasInterpretation, false);
+  assert.equal(incompleteDualRulership.week.length, 0);
+  assert.equal(incompleteDualRulership.calendar.records[0].hasInterpretation, false);
+});
+
+test('does not reuse one occurrence editorial on a different Aspect Arc occurrence', () => {
+  const laterArc = {
+    ...completeArc,
+    moments: {
+      activating: '2026-08-10T12:00:00Z',
+      pointOfExactitude: '2026-08-12T12:00:00Z',
+      releasing: '2026-08-14T12:00:00Z',
+    },
+  };
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [completeArc, laterArc],
+    },
+    interpretations: {
+      [occurrenceIdFor(laterArc)]: approvedEditorial(laterArc),
+    },
+  });
+
+  const earlier = feed.calendar.records.find(({ id }) => id === occurrenceIdFor(completeArc));
+  const later = feed.calendar.records.find(({ id }) => id === occurrenceIdFor(laterArc));
+  assert.equal(earlier.hasInterpretation, false);
+  assert.equal(later.hasInterpretation, true);
 });
