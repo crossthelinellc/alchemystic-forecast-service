@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  DUAL_RULERSHIP_FIELDS,
   buildInterpretationPlan,
   buildUniversalInterpretation,
   groupAspectArcs,
@@ -46,6 +47,10 @@ test('creates a mandatory ordered plan before forecast prose can be written', ()
   assert.equal(synthesis.requirement, 'apply_aspect_to_both_assessed_planetary_conditions');
   assert.strictEqual(synthesis.inputs.planetOneCondition, plan.orderedReading[0]);
   assert.strictEqual(synthesis.inputs.planetTwoCondition, plan.orderedReading[1]);
+  assert.deepEqual(
+    synthesis.inputs.planetTwoCondition.dualRulership.fields.map(({ sign, expression }) => ({ sign, expression })),
+    DUAL_RULERSHIP_FIELDS.mercury,
+  );
   assert.equal(plan.requiredMoments.pointOfExactitude.from, 'pallas_to_mercury');
   assert.equal(plan.requiredMoments.pointOfExactitude.to, 'mercury_to_pallas');
   assert.ok(plan.prohibitions.includes('isolated_aspect_interpretation'));
@@ -78,6 +83,44 @@ test('assesses each focus planet, its channels, and its ruler before interpretat
   assert.ok(result.thematicLayers.with.some(({ body }) => body === 'pluto'));
   assert.ok(result.thematicLayers.with.some(({ body }) => body === 'uranus'));
   assert.ok(result.thematicLayers.while.some(({ body }) => body === 'moon'));
+});
+
+test('culminates both inferior and superior sign fields in Mercury and Venus conditions', () => {
+  const result = buildUniversalInterpretation({
+    focus: ['pallas', 'mercury'],
+    positions: [
+      { key: 'pallas', longitude: 222, speed: 0.2 },
+      { key: 'mercury', longitude: 312, speed: 1.1 },
+      { key: 'venus', longitude: 10, speed: 1 },
+      { key: 'uranus', longitude: 65, speed: 0.01 },
+      { key: 'saturn', longitude: 165, speed: -0.04 },
+      { key: 'mars', longitude: 40, speed: 0.5 },
+      { key: 'jupiter', longitude: 190, speed: 0.1 },
+    ],
+  });
+
+  assert.deepEqual(DUAL_RULERSHIP_FIELDS.mercury, [
+    { sign: 'gemini', expression: 'inferior_mercury' },
+    { sign: 'virgo', expression: 'superior_mercury' },
+  ]);
+  assert.deepEqual(DUAL_RULERSHIP_FIELDS.venus, [
+    { sign: 'taurus', expression: 'inferior_venus' },
+    { sign: 'libra', expression: 'superior_venus' },
+  ]);
+
+  const mercuryFields = Object.fromEntries(
+    result.planetaryCondition.mercury.dualRulership.fields.map((field) => [field.sign, field]),
+  );
+  assert.deepEqual(mercuryFields.gemini.conditions.map(({ body }) => body), ['uranus']);
+  assert.deepEqual(mercuryFields.virgo.conditions.map(({ body }) => body), ['saturn']);
+  assert.equal(mercuryFields.virgo.conditions[0].motion, 'retrograde');
+  assert.ok(Array.isArray(mercuryFields.gemini.conditions[0].channels));
+
+  const venusFields = Object.fromEntries(
+    result.planetaryCondition.venus.dualRulership.fields.map((field) => [field.sign, field]),
+  );
+  assert.deepEqual(venusFields.taurus.conditions.map(({ body }) => body), ['mars']);
+  assert.deepEqual(venusFields.libra.conditions.map(({ body }) => body), ['jupiter']);
 });
 
 test('keeps indirect aspect chains in the simultaneous while layer', () => {

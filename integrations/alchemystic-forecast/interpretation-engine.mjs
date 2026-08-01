@@ -15,6 +15,17 @@ export const ZODIAC_SIGNS = Object.freeze([
   { key: 'pisces', label: 'Pisces', ruler: 'neptune' },
 ]);
 
+export const DUAL_RULERSHIP_FIELDS = Object.freeze({
+  mercury: Object.freeze([
+    Object.freeze({ sign: 'gemini', expression: 'inferior_mercury' }),
+    Object.freeze({ sign: 'virgo', expression: 'superior_mercury' }),
+  ]),
+  venus: Object.freeze([
+    Object.freeze({ sign: 'taurus', expression: 'inferior_venus' }),
+    Object.freeze({ sign: 'libra', expression: 'superior_venus' }),
+  ]),
+});
+
 export function zodiacPlacement(longitude) {
   const normalized = normalizeLongitude(longitude);
   const sign = ZODIAC_SIGNS[Math.floor(normalized / 30)];
@@ -106,6 +117,8 @@ export function buildInterpretationPlan({ context, arc }) {
   const oneCondition = context.planetaryCondition[one];
   const twoCondition = context.planetaryCondition[two];
   if (!oneCondition || !twoCondition) throw new Error('Both focus planets require condition records.');
+  assertDualRulershipComplete(one, oneCondition);
+  assertDualRulershipComplete(two, twoCondition);
   const planetOneStep = conditionStep('planet_one_condition', one, oneCondition);
   const planetTwoStep = conditionStep('planet_two_condition', two, twoCondition);
 
@@ -153,6 +166,7 @@ export function buildInterpretationPlan({ context, arc }) {
       'merge_while_layers_into_with_theme',
       'generic_good_bad_scoring',
       'unassessed_planet_in_aspect_synthesis',
+      'partial_mercury_venus_rulership_field',
     ],
   };
 }
@@ -161,7 +175,33 @@ function describeCondition(key, byKey, relationships) {
   const position = requiredPosition(byKey, key);
   const placement = zodiacPlacement(position.longitude);
   const rulerPosition = byKey.get(placement.signRuler);
-  const channels = relationships
+  const channels = describeChannels(key, relationships);
+  const ruledSigns = ZODIAC_SIGNS.filter((sign) => sign.ruler === key).map((sign) => sign.key);
+  const conditionsCarriedForward = [...byKey.values()]
+    .filter((candidate) => ruledSigns.includes(zodiacPlacement(candidate.longitude).sign))
+    .map((candidate) => summarizeCarriedCondition(candidate, relationships));
+  const dualRulership = describeDualRulership(key, conditionsCarriedForward);
+
+  return {
+    body: key,
+    motion: motionFromSpeed(position),
+    throughPoint: placement,
+    direction: rulerPosition ? {
+      ruler: placement.signRuler,
+      placement: zodiacPlacement(rulerPosition.longitude),
+    } : { ruler: placement.signRuler, placement: null },
+    delegate: {
+      ruledSigns,
+      bodiesCarriedForward: conditionsCarriedForward.map(({ body }) => body),
+      conditionsCarriedForward,
+    },
+    dualRulership,
+    channels,
+  };
+}
+
+function describeChannels(key, relationships) {
+  return relationships
     .filter((relationship) => relationship.contact.kind !== 'out_of_orb')
     .filter((relationship) => (
       relationship.planetOne.key === key || relationship.planetTwo.key === key
@@ -174,22 +214,42 @@ function describeCondition(key, byKey, relationships) {
       contact: relationship.contact.kind,
       deviation: relationship.aspect.deviation,
     }));
-  const ruledSigns = ZODIAC_SIGNS.filter((sign) => sign.ruler === key).map((sign) => sign.key);
-  const delegatedBodies = [...byKey.values()]
-    .filter((candidate) => ruledSigns.includes(zodiacPlacement(candidate.longitude).sign))
-    .map((candidate) => candidate.key);
+}
 
+function summarizeCarriedCondition(position, relationships) {
+  const throughPoint = zodiacPlacement(position.longitude);
   return {
-    body: key,
+    body: position.key,
     motion: motionFromSpeed(position),
-    throughPoint: placement,
-    direction: rulerPosition ? {
-      ruler: placement.signRuler,
-      placement: zodiacPlacement(rulerPosition.longitude),
-    } : { ruler: placement.signRuler, placement: null },
-    delegate: { ruledSigns, bodiesCarriedForward: delegatedBodies },
-    channels,
+    throughPoint,
+    direction: { ruler: throughPoint.signRuler },
+    channels: describeChannels(position.key, relationships),
   };
+}
+
+function describeDualRulership(key, conditionsCarriedForward) {
+  const configuredFields = DUAL_RULERSHIP_FIELDS[key];
+  if (!configuredFields) return null;
+  return {
+    planet: key,
+    requirement: 'both_ruled_sign_fields_culminate_in_planetary_condition',
+    fields: configuredFields.map(({ sign, expression }) => ({
+      sign,
+      expression,
+      conditions: conditionsCarriedForward.filter(({ throughPoint }) => throughPoint.sign === sign),
+    })),
+  };
+}
+
+function assertDualRulershipComplete(body, condition) {
+  const configuredFields = DUAL_RULERSHIP_FIELDS[body];
+  if (!configuredFields) return;
+  const fields = condition.dualRulership?.fields;
+  const complete = condition.dualRulership?.requirement === 'both_ruled_sign_fields_culminate_in_planetary_condition'
+    && configuredFields.every(({ sign, expression }) => fields?.some((field) => (
+      field.sign === sign && field.expression === expression && Array.isArray(field.conditions)
+    )));
+  if (!complete) throw new Error(`Both ruled-sign fields are required for ${body}.`);
 }
 
 function conditionStep(step, body, condition) {
@@ -201,6 +261,7 @@ function conditionStep(step, body, condition) {
     throughPoint: condition.throughPoint,
     direction: condition.direction,
     delegate: condition.delegate,
+    dualRulership: condition.dualRulership,
   };
 }
 

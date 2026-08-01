@@ -19,6 +19,12 @@ concurrent **While** layers. It also groups scanner
 events into Aspect Arc records so Activating, True Aspect/Forced Aspect shifts, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
+Mercury and Venus use mandatory dual-rulership fields. Mercury's condition culminates everything
+occupying Gemini through Inferior Mercury and everything occupying Virgo through Superior Mercury.
+Venus's condition culminates everything occupying Taurus through Inferior Venus and everything
+occupying Libra through Superior Venus. Each carried condition retains the occupant's motion,
+Through Point, and active Channels; neither ruled-sign field may be omitted before aspect synthesis.
+
 Approved editorial records must carry an `alchemystic-interpretation.v1` method record containing
 planet one's assessed condition, planet two's separately assessed condition, and an aspect synthesis
 whose body and aspect keys match the calculated arc. The feed fails closed at the interpretation
