@@ -109,3 +109,27 @@ test('passes authoritative eclipse events into the forecast presentation', async
   assert.equal(response.status, 200);
   assert.equal(receivedEclipses[0].kind, 'solar_eclipse');
 });
+
+test('lets approved occurrence editorial override a generated foundational translation', async () => {
+  let receivedInterpretations;
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({ occurrence: { tier: 'editorial', interpretation: 'Approved.' } }),
+    createFoundationalTranslations: async () => ({
+      occurrence: { tier: 'foundational', interpretation: 'Generated.' },
+      baselineOnly: { tier: 'foundational', interpretation: 'Baseline.' },
+    }),
+    scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' }),
+    presentForecast: ({ interpretations }) => {
+      receivedInterpretations = interpretations;
+      return { schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } };
+    },
+  });
+
+  const response = await request(handler);
+  assert.equal(response.status, 200);
+  assert.equal(receivedInterpretations.occurrence.interpretation, 'Approved.');
+  assert.equal(receivedInterpretations.occurrence.tier, 'editorial');
+  assert.equal(receivedInterpretations.baselineOnly.interpretation, 'Baseline.');
+});

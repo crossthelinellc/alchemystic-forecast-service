@@ -75,6 +75,23 @@ test('builds a calculation-only dossier across the complete Aspect Arc', async (
   assert.equal('interpretation' in dossier, false);
 });
 
+test('keeps Point of Exactitude as the True Aspect nucleus even for a one-sided OOI arc', async () => {
+  const oneSidedArc = {
+    ...arc,
+    events: arc.events.map((event) => (
+      event.type === 'point_of_exactitude'
+        ? { ...event, contact: 'forced', forcedBy: 'mercury' }
+        : event
+    )),
+  };
+  const dossier = await buildAspectArcDossier({ arc: oneSidedArc, positionProvider });
+
+  assert.deepEqual(dossier.phases.pointOfExactitude.contact, {
+    type: 'True Aspect',
+    forcedBy: null,
+  });
+});
+
 test('queues only complete Aspect Arcs with a phase moment in the weekly editorial window', async () => {
   const futureArc = {
     ...arc,

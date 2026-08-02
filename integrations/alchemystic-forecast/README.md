@@ -37,6 +37,14 @@ bodies form the same aspect again under different conditions. Missing or mismatc
 records are rejected before prose reaches the feed, preventing an isolated or stale aspect meaning
 from being presented as an Alchemystic interpretation.
 
+`foundational-translation.mjs` gives every complete non-lunar Aspect Arc a doctrine-validated
+baseline translation from that same three-phase dossier. It assesses Planet One and Planet Two
+separately, includes every active Channel, preserves Mercury and Venus dual-rulership fields,
+separates With from While layers, applies the ordered aspect, and explains the directional handoff.
+These translations are generated during the cached feed build and never call an API from the
+storefront. Occurrence-specific approved editorial overrides the foundational layer whenever it is
+available; the feed exposes the selected source as `interpretationTier`.
+
 `forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the
 Shopify sections. The homepage `week` collection includes approved editorial interpretations; the
 rolling `calendar` collection retains calculated arcs whether or not editorial copy is available.

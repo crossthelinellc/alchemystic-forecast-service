@@ -65,8 +65,11 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], no
     schema: 'mystic-rebels.alchemystic-forecast.v1',
     generatedAt: forecast.generatedAt,
     timeZone,
-    week: records.filter(({ hasInterpretation, range }) => (
-      hasInterpretation && toTime(range.end) >= currentTime && toTime(range.start) <= weekEnd
+    week: records.filter(({ hasInterpretation, interpretationTier, range }) => (
+      hasInterpretation
+      && interpretationTier === 'editorial'
+      && toTime(range.end) >= currentTime
+      && toTime(range.start) <= weekEnd
     )),
     calendar: {
       range: {
@@ -173,6 +176,7 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
     contactTimeline,
     moments: { activating, exactitude, releasing },
     hasInterpretation,
+    interpretationTier: hasInterpretation ? editorial.tier || 'editorial' : '',
     interpretation: hasInterpretation ? editorial.interpretation : '',
     alignment: hasInterpretation ? editorial.alignment : '',
     conditionSummary: hasInterpretation ? editorial.conditionSummary || '' : '',

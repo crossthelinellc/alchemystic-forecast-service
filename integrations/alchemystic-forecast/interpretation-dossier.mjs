@@ -133,6 +133,9 @@ function phaseDossier({ arc, phase, timestamp, sampleTimestamp, context }) {
 }
 
 function contactForPhase(arc, phase, calculatedContact) {
+  if (phase === 'pointOfExactitude') {
+    return { type: 'True Aspect', forcedBy: null };
+  }
   const type = phase === 'activating'
     ? 'true_aspect_activation'
     : phase === 'pointOfExactitude' ? 'point_of_exactitude' : 'aspect_release';

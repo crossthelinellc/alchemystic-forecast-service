@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 import { buildForecastFeed } from './forecast-feed.mjs';
 import { scanUniversalForecast } from './forecast-scanner.mjs';
+import { buildFoundationalTranslations } from './foundational-translation.mjs';
 import { calculateSwissEclipses, calculateSwissPositions } from './swetest-provider.mjs';
 
 const DAY_MS = 86_400_000;
@@ -19,6 +20,7 @@ export function createForecastService({
   positionProvider,
   eclipseProvider = async () => [],
   loadInterpretations,
+  createFoundationalTranslations = buildFoundationalTranslations,
   scanForecast = scanUniversalForecast,
   presentForecast = buildForecastFeed,
   now = () => new Date(),
@@ -29,6 +31,7 @@ export function createForecastService({
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
   if (typeof eclipseProvider !== 'function') throw new TypeError('An eclipse provider is required.');
   if (typeof loadInterpretations !== 'function') throw new TypeError('An interpretation loader is required.');
+  if (typeof createFoundationalTranslations !== 'function') throw new TypeError('A foundational translation builder is required.');
   assertPublicSourceUrl(sourceUrl);
 
   let cached = null;
@@ -45,13 +48,17 @@ export function createForecastService({
       precisionMinutes: 1,
       positionProvider,
     });
-    const [interpretations, eclipses] = await Promise.all([
+    const [approvedInterpretations, foundationalInterpretations, eclipses] = await Promise.all([
       loadInterpretations(),
+      createFoundationalTranslations({ forecast, positionProvider }),
       eclipseProvider({ start: scanStart, end: new Date(scanStart.getTime() + 42 * DAY_MS) }),
     ]);
     const feed = presentForecast({
       forecast,
-      interpretations,
+      interpretations: {
+        ...foundationalInterpretations,
+        ...approvedInterpretations,
+      },
       eclipses,
       now: focusStart,
       timeZone,
