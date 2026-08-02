@@ -16,7 +16,7 @@ export const BODY_CATALOG = Object.freeze({
   vesta: { label: 'Vesta', ooi: 1, type: 'asteroid' },
   mean_black_moon_lilith: {
     label: 'Mean Black Moon Lilith',
-    ooi: 0,
+    ooi: 3,
     type: 'mathematical_point',
   },
   mean_north_node: {

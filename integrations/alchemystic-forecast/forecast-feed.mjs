@@ -98,7 +98,7 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
     { datetime: activating.datetime, dateKey: activating.dateKey, contactType: activationContact },
     ...transitionEvents.map((event) => ({
       id: `${occurrenceId}:contact-shift:${event.timestamp}`,
-      ...moment(event.timestamp, timeZone),
+      ...moment(event.timestamp, timeZone, { includeTime: true }),
       contactType: contactLabel(event.toContact),
       fromContact: contactLabel(event.fromContact),
       toContact: contactLabel(event.toContact),
@@ -208,15 +208,21 @@ function contactLabel(contact) {
   return '';
 }
 
-function moment(value, timeZone) {
+function moment(value, timeZone, { includeTime = false } = {}) {
   const instant = new Date(value);
   if (Number.isNaN(instant.getTime())) throw new TypeError(`Invalid Aspect Arc timestamp: ${value}`);
+  const dateDisplay = new Intl.DateTimeFormat('en-US', {
+    timeZone, weekday: 'long', month: 'long', day: 'numeric',
+  }).format(instant).replace(',', ' ·');
+  const timeDisplay = includeTime
+    ? new Intl.DateTimeFormat('en-US', {
+      timeZone, hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+    }).format(instant)
+    : '';
   return {
     datetime: instant.toISOString(),
     dateKey: dateKey(instant, timeZone),
-    display: new Intl.DateTimeFormat('en-US', {
-      timeZone, weekday: 'long', month: 'long', day: 'numeric',
-    }).format(instant).replace(',', ' ·'),
+    display: [dateDisplay, timeDisplay].filter(Boolean).join(' · '),
   };
 }
 

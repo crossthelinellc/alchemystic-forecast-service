@@ -91,6 +91,10 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.deepEqual(feed.week[0].contactTimeline.map(({ contactType }) => contactType), [
     'Forced Aspect', 'True Aspect', 'Forced Aspect',
   ]);
+  assert.deepEqual(feed.week[0].contactTimeline.slice(1).map(({ display }) => display), [
+    'Saturday · August 1 · 1:00 PM CDT',
+    'Monday · August 3 · 1:00 PM CDT',
+  ]);
   assert.deepEqual(feed.week[0].contactTimeline.slice(1).map((entry) => ({
     side: entry.side,
     fromForcedBy: entry.fromForcedBy,

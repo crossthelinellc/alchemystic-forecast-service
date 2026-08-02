@@ -85,3 +85,16 @@ test('mathematical points receive influence without projecting their own OOI', (
     kind: 'forced', directImpact: true, forcedBy: 'venus',
   });
 });
+
+test('Mean Black Moon Lilith uses its author-confirmed 3° OOI', () => {
+  const lilith = { key: 'mean_black_moon_lilith', ...BODY_CATALOG.mean_black_moon_lilith };
+  const venus = { key: 'venus', ...BODY_CATALOG.venus };
+
+  assert.equal(lilith.ooi, 3);
+  assert.deepEqual(classifyContact(lilith, venus, 4), {
+    kind: 'forced', directImpact: true, forcedBy: 'venus',
+  });
+  assert.deepEqual(classifyContact(lilith, venus, 3), {
+    kind: 'direct', directImpact: true, forcedBy: null,
+  });
+});
