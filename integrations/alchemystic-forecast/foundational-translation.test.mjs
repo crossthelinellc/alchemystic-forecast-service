@@ -46,7 +46,10 @@ test('builds a complete foundational translation from both assessed planetary co
   assert.match(translation.interpretation, /Square is synchronizing pressure/);
   assert.match(translation.interpretation, /Mercury must also be read through both signs it rules/);
   assert.match(translation.interpretation, /hands off from Pallas → Mercury to Mercury → Pallas/);
-  assert.match(translation.alignment, /Support Mercury's needs/);
+  assert.match(translation.alignment, /Pallas’s creative-strategic pattern recognition/);
+  assert.match(translation.alignment, /Mercury’s mind/);
+  assert.match(translation.alignment, /two legitimate needs instead of choosing a winner/);
+  assert.doesNotMatch(translation.alignment, /Planet One|Planet Two|Point of Exactitude|Aspect Arc|OOI|True Aspect|Forced Aspect|directional handoff/);
   assert.match(translation.conditionSummary, /active channels/);
   assert.match(translation.conditionSummary, /connected With layer/);
   assert.equal(hasCompleteInterpretationMethod(arc, translation.method, dossier.id), true);
@@ -79,4 +82,19 @@ test('generates translations for complete non-lunar arcs and keeps lunar contact
   assert.equal(feed.calendar.records[0].hasInterpretation, true);
   assert.equal(feed.calendar.records[0].interpretationTier, 'foundational');
   assert.equal(feed.week.length, 0);
+});
+
+test('translates every configured aspect into practical use rather than technical mechanics', async () => {
+  const dossier = await buildAspectArcDossier({ arc, positionProvider });
+  const aspectKeys = ['conjunction', 'semi_sextile', 'sextile', 'square', 'trine', 'quincunx', 'opposition'];
+
+  for (const aspectKey of aspectKeys) {
+    const translation = foundationalTranslationForDossier({
+      ...dossier,
+      arc: { ...dossier.arc, aspect: aspectKey },
+    });
+    assert.match(translation.alignment, /Pallas’s creative-strategic pattern recognition/);
+    assert.match(translation.alignment, /Mercury’s mind/);
+    assert.doesNotMatch(translation.alignment, /Planet One|Planet Two|Point of Exactitude|Aspect Arc|OOI|True Aspect|Forced Aspect|directional handoff/);
+  }
 });

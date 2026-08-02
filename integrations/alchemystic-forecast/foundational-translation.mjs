@@ -86,11 +86,7 @@ export function foundationalTranslationForDossier(dossier) {
     `At Point of Exactitude, the current hands off from ${oneName} → ${twoName} to ${twoName} → ${oneName}.`,
   ].join(' ');
 
-  const alignment = [
-    personalizeAspect(aspect.synthesis, oneName, twoName),
-    'Treat Activating as the wake-up call, not the whole story.',
-    'Use Point of Exactitude as the directional handoff, then watch for the final heightened expression as the Aspect Arc releases.',
-  ].join(' ');
+  const alignment = alchemyFor({ aspectKey: arc.aspect, one, two });
 
   const conditionSummary = [
     oneReading.conditionSummary,
@@ -214,6 +210,25 @@ function contactArcReading(dossier) {
     `Releasing leaves as ${contactPhrase(releasing.contact)}.`,
   ];
   return parts.join(' ');
+}
+
+function alchemyFor({ aspectKey, one, two }) {
+  const oneName = requiredLabel(BODY_LABELS, one.body);
+  const twoName = requiredLabel(BODY_LABELS, two.body);
+  const oneEnergy = `${oneName}’s ${lowerFirst(requiredVocabulary(BODY_VOCABULARY, one.body, 'body').core)}`;
+  const twoEnergy = `${twoName}’s ${lowerFirst(requiredVocabulary(BODY_VOCABULARY, two.body, 'body').core)}`;
+  const oneThrough = `${requiredLabel(SIGN_LABELS, one.throughPoint.sign)}’s ${requiredLabel(THROUGH_POINT_THEMES, one.throughPoint.sign)}`;
+  const twoThrough = `${requiredLabel(SIGN_LABELS, two.throughPoint.sign)}’s ${requiredLabel(THROUGH_POINT_THEMES, two.throughPoint.sign)}`;
+  const templates = {
+    conjunction: `Give ${oneEnergy} and ${twoEnergy} one shared assignment. Let ${oneThrough} establish the focus, while ${twoThrough} keeps the joined force responsive to both conditions. Concentrate the energy around one honest purpose instead of letting either character disappear inside the other.`,
+    semi_sextile: `Before pushing ${oneEnergy} forward, ask what ${twoEnergy} needs in order to participate. Use ${twoThrough} to supply that need, then let ${oneThrough} activate only what can function with it. Keep the useful adjustment concrete; confusion clears when the requirement is named instead of guessed.`,
+    sextile: `Choose a deliberate way for ${oneEnergy} to cooperate with ${twoEnergy}. Use ${oneThrough} to initiate the move and ${twoThrough} to supply the companion function. Make one concrete exchange between them; this opportunity becomes useful through participation, not by waiting for it to run itself.`,
+    square: `Stop asking ${oneEnergy} to overpower ${twoEnergy}. Give ${twoEnergy} equal authority through ${twoThrough}, then recalibrate ${oneEnergy} through ${oneThrough} until both can operate at once. Build the solution around two legitimate needs instead of choosing a winner.`,
+    trine: `Aim the uninterrupted flow from ${oneEnergy} into ${twoEnergy} at a chosen result. Use ${oneThrough} to set the direction and ${twoThrough} to decide what the current becomes. Because this energy can run easily, direct it deliberately instead of assuming that ease automatically makes it useful.`,
+    quincunx: `Give ${oneEnergy} and ${twoEnergy} separate containers. Let ${oneEnergy} lend what it can through ${oneThrough} without demanding a merger, and protect what ${twoEnergy} needs through ${twoThrough}. Name which condition is active and use separation as precision rather than treating it as failure.`,
+    opposition: `Keep ${oneEnergy} and ${twoEnergy} visible at opposite ends of the same decision. Let ${oneThrough} represent one side and ${twoThrough} represent the other, then create a conscious exchange that includes both without collapsing either. Use the contrast to reveal what each condition cannot see alone.`,
+  };
+  return requiredLabel(templates, aspectKey);
 }
 
 function contactPhrase(contact) {
