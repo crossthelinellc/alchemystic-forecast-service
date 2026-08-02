@@ -16,6 +16,7 @@ test('normalizes longitudes to the 360-degree zodiac', () => {
   assert.equal(normalizeLongitude(361.5), 1.5);
   assert.equal(normalizeLongitude(-1.5), 358.5);
 });
+
 test('retains direction below the 180-degree Energy Flow Meridian', () => {
   const arc = directedArc(body('moon', 325.95, 13), body('chiron', 54.7, 0.05));
   assert.equal(arc.planetOne.key, 'moon');

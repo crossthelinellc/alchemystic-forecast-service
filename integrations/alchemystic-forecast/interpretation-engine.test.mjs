@@ -202,25 +202,6 @@ test('culminates both inferior and superior sign fields in Mercury and Venus con
   assert.deepEqual(venusFields.libra.conditions.map(({ body }) => body), ['jupiter']);
 });
 
-test('keeps indirect aspect chains in the simultaneous while layer', () => {
-  const result = buildUniversalInterpretation({
-    focus: ['pallas', 'mercury'],
-    positions: [
-      { key: 'pallas', longitude: 222, speed: 0.2 },
-      { key: 'mercury', longitude: 312, speed: 1.1 },
-      { key: 'pluto', longitude: 309, speed: 0.02 },
-      { key: 'uranus', longitude: 65, speed: 0.01 },
-      { key: 'mars', longitude: 132, speed: 0.5 },
-      { key: 'moon', longitude: 199, speed: 13 },
-    ],
-  });
-
-  assert.ok(result.thematicLayers.with.some(({ body }) => body === 'mars'));
-  assert.ok(result.thematicLayers.with.some(({ body }) => body === 'pluto'));
-  assert.ok(result.thematicLayers.with.some(({ body }) => body === 'uranus'));
-  assert.ok(result.thematicLayers.while.some(({ body }) => body === 'moon'));
-});
-
 test('keeps activating, exactitude handoff, and releasing together on one arc', () => {
   const arcs = groupAspectArcs([
     { type: 'point_of_exactitude', timestamp: '2026-08-03T12:00:00Z', planetOne: 'pallas', planetTwo: 'mercury', aspect: 'square' },

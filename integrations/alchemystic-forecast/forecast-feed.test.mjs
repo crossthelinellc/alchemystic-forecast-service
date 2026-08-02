@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildForecastFeed } from './forecast-feed.mjs';
+import { BODY_GLYPHS, buildForecastFeed } from './forecast-feed.mjs';
 import { INTERPRETATION_VOCABULARY_VERSION } from './interpretation-vocabulary.mjs';
 
 const completeArc = {
@@ -22,6 +22,22 @@ const completeArc = {
     { type: 'aspect_release', contact: 'fringe', fromContact: 'forced' },
   ],
 };
+
+test('uses canonical astrological glyphs for asteroids and Mean Black Moon Lilith', () => {
+  assert.deepEqual({
+    ceres: BODY_GLYPHS.ceres,
+    pallas: BODY_GLYPHS.pallas,
+    juno: BODY_GLYPHS.juno,
+    vesta: BODY_GLYPHS.vesta,
+    meanBlackMoonLilith: BODY_GLYPHS.mean_black_moon_lilith,
+  }, {
+    ceres: '⚳',
+    pallas: '⚴',
+    juno: '⚵',
+    vesta: '⚶',
+    meanBlackMoonLilith: '⚸',
+  });
+});
 
 function approvedEditorial(arc, overrides = {}) {
   const occurrenceId = occurrenceIdFor(arc);
@@ -113,13 +129,57 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.week[0].moments.releasing.contactType, 'Forced Aspect');
   assert.equal(feed.week[0].moments.exactitude.display, 'Sunday · August 2');
   assert.equal(feed.week[0].moments.exactitude.dateKey, '2026-08-02');
-  assert.equal(feed.week[0].planetOneGlyph, 'P');
+  assert.equal(feed.week[0].planetOneGlyph, '⚴');
   assert.equal(feed.week[0].interpretationMethod, 'alchemystic-interpretation.v3');
   assert.equal(feed.week[0].aspectGlyph, '□');
   assert.equal(feed.week[0].articleUrl, '');
   assert.equal(feed.calendar.range.start, '2026-07-02');
   assert.equal(feed.calendar.range.end, '2026-08-31');
   assert.equal(feed.calendar.records.length, 1);
+});
+
+test('publishes New Moons, Full Moons, and authoritative eclipse classifications separately', () => {
+  const newMoonArc = {
+    ...completeArc,
+    key: 'sun:conjunction:moon',
+    planetOne: 'sun',
+    planetTwo: 'moon',
+    aspect: 'conjunction',
+    moments: {
+      activating: '2026-08-09T12:00:00Z',
+      pointOfExactitude: '2026-08-12T17:46:00Z',
+      releasing: '2026-08-15T12:00:00Z',
+    },
+  };
+  const fullMoonArc = {
+    ...newMoonArc,
+    key: 'sun:opposition:moon',
+    aspect: 'opposition',
+    moments: {
+      activating: '2026-08-25T12:00:00Z',
+      pointOfExactitude: '2026-08-28T04:13:00Z',
+      releasing: '2026-08-31T12:00:00Z',
+    },
+  };
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    timeZone: 'America/Chicago',
+    forecast: {
+      generatedAt: '2026-08-01T12:00:00Z',
+      window: { start: '2026-08-01T12:00:00Z' },
+      arcs: [newMoonArc, fullMoonArc],
+    },
+    eclipses: [
+      { kind: 'solar_eclipse', eclipseType: 'total', timestamp: '2026-08-12T17:45:59.200Z', source: 'swiss_ephemeris_global_eclipse_search' },
+      { kind: 'lunar_eclipse', eclipseType: 'partial', timestamp: '2026-08-28T04:12:58.000Z', source: 'swiss_ephemeris_global_eclipse_search' },
+    ],
+    interpretations: {},
+  });
+
+  assert.deepEqual(feed.calendar.lunarEvents.map(({ title, phase, dateKey, source }) => ({ title, phase, dateKey, source })), [
+    { title: 'Total Solar Eclipse', phase: 'New Moon', dateKey: '2026-08-12', source: 'swiss_ephemeris_global_eclipse_search' },
+    { title: 'Partial Lunar Eclipse', phase: 'Full Moon', dateKey: '2026-08-27', source: 'swiss_ephemeris_global_eclipse_search' },
+  ]);
 });
 
 test('publishes a Chronicle link only when editorial supplies a specific article URL', () => {

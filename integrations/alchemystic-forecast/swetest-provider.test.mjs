@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { calculateSwissPositions, parseSwetestOutput } from './swetest-provider.mjs';
+import {
+  calculateSwissEclipses,
+  calculateSwissPositions,
+  parseSwissEclipseOutput,
+  parseSwetestOutput,
+} from './swetest-provider.mjs';
 
 const fixture = `Sun            , 128.3109139,  0.9561591
 Moon           , 329.8793712, 12.5223543
@@ -32,6 +37,7 @@ test('parses all authoritative version-one Swiss positions', () => {
     speed: -0.0529673,
   });
 });
+
 test('rejects Swiss warnings instead of accepting a silent fallback', () => {
   assert.throws(
     () => parseSwetestOutput(`${fixture}\nwarning: using Moshier eph.`),
@@ -52,4 +58,39 @@ test('can verify against a locally compiled official swetest binary', {
   assert.ok(result.positions.every(({ longitude, speed }) => (
     Number.isFinite(longitude) && Number.isFinite(speed)
   )));
+});
+
+test('parses authoritative Swiss Ephemeris solar and lunar eclipse searches', () => {
+  const solar = parseSwissEclipseOutput(`
+total solar\t12.08.2026\t  17:45:59.2\t-132.445826 km\t1.0395/1.0178/1.0806
+`, 'solar');
+  const lunar = parseSwissEclipseOutput(`
+partial lunar eclipse\t28.08.2026\t  04:12:58.0\t0.9299/1.9646
+penumb. lunar eclipse\t20.02.2027\t  23:12:52.8\t0.0000/0.9266
+`, 'lunar');
+
+  assert.deepEqual(solar[0], {
+    kind: 'solar_eclipse',
+    eclipseType: 'total',
+    timestamp: '2026-08-12T17:45:59.200Z',
+    source: 'swiss_ephemeris_global_eclipse_search',
+  });
+  assert.equal(lunar[0].eclipseType, 'partial');
+  assert.equal(lunar[0].timestamp, '2026-08-28T04:12:58.000Z');
+  assert.equal(lunar[1].eclipseType, 'penumbral');
+});
+
+test('finds the August 2026 eclipses with the pinned official swetest binary', {
+  skip: !process.env.SWETEST_BIN || !process.env.SWISSEPH_PATH,
+}, () => {
+  const eclipses = calculateSwissEclipses({
+    start: '2026-08-01T00:00:00Z',
+    end: '2026-08-31T23:59:59Z',
+    binaryPath: process.env.SWETEST_BIN,
+    ephemerisPath: process.env.SWISSEPH_PATH,
+  });
+  assert.deepEqual(eclipses.map(({ kind, eclipseType }) => [kind, eclipseType]), [
+    ['solar_eclipse', 'total'],
+    ['lunar_eclipse', 'partial'],
+  ]);
 });

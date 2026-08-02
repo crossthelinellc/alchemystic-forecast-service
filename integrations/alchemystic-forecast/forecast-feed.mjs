@@ -17,10 +17,10 @@ const ASPECT_LABELS = Object.freeze({
   square: 'Squares', trine: 'Trines', quincunx: 'Quincunxes', opposition: 'Opposes',
 });
 
-const BODY_GLYPHS = Object.freeze({
+export const BODY_GLYPHS = Object.freeze({
   sun: '☉', moon: '☽', mercury: '☿', venus: '♀', mars: '♂', jupiter: '♃',
   saturn: '♄', uranus: '♅', neptune: '♆', pluto: '♇', chiron: '⚷',
-  vesta: 'V', juno: 'J', ceres: 'C', pallas: 'P', mean_black_moon_lilith: 'L',
+  vesta: '⚶', juno: '⚵', ceres: '⚳', pallas: '⚴', mean_black_moon_lilith: '⚸',
   mean_north_node: '☊', mean_south_node: '☋',
 });
 
@@ -38,7 +38,7 @@ const BODY_FAMILIES = Object.freeze({
   mean_black_moon_lilith: 'point', mean_north_node: 'point', mean_south_node: 'point',
 });
 
-export function buildForecastFeed({ forecast, interpretations, now, timeZone = 'America/Chicago' }) {
+export function buildForecastFeed({ forecast, interpretations, eclipses = [], now, timeZone = 'America/Chicago' }) {
   if (!forecast?.window || !Array.isArray(forecast.arcs)) {
     throw new TypeError('A scanned universal forecast is required.');
   }
@@ -58,6 +58,8 @@ export function buildForecastFeed({ forecast, interpretations, now, timeZone = '
     .filter(Boolean)
     .filter(({ range }) => toTime(range.end) >= calendarStart && toTime(range.start) <= calendarEnd)
     .sort((one, two) => one.range.focus.localeCompare(two.range.focus));
+  const lunarEvents = serializeLunarEvents(forecast.arcs, eclipses, timeZone)
+    .filter(({ datetime }) => toTime(datetime) >= calendarStart && toTime(datetime) <= calendarEnd);
 
   return {
     schema: 'mystic-rebels.alchemystic-forecast.v1',
@@ -72,8 +74,40 @@ export function buildForecastFeed({ forecast, interpretations, now, timeZone = '
         end: dateKey(calendarEnd, timeZone),
       },
       records,
+      lunarEvents,
     },
   };
+}
+
+function serializeLunarEvents(arcs, eclipses, timeZone) {
+  const eclipseEvents = Array.isArray(eclipses) ? eclipses : [];
+  return arcs.filter((arc) => {
+    const bodies = new Set([arc?.planetOne, arc?.planetTwo]);
+    return bodies.has('sun') && bodies.has('moon') && ['conjunction', 'opposition'].includes(arc?.aspect);
+  }).map((arc) => {
+    const phase = arc.aspect === 'conjunction' ? 'New Moon' : 'Full Moon';
+    const eclipseKind = arc.aspect === 'conjunction' ? 'solar_eclipse' : 'lunar_eclipse';
+    const phaseTimestamp = new Date(arc.moments?.pointOfExactitude).toISOString();
+    const eclipse = eclipseEvents.find((candidate) => (
+      candidate.kind === eclipseKind
+      && Math.abs(toTime(candidate.timestamp) - toTime(phaseTimestamp)) <= 18 * 60 * 60 * 1000
+    ));
+    const datetime = eclipse?.timestamp || phaseTimestamp;
+    const eclipseLabel = eclipse ? `${titleCase(eclipse.eclipseType)} ${eclipseKind === 'solar_eclipse' ? 'Solar' : 'Lunar'} Eclipse` : '';
+    return {
+      id: `lunar:${arc.aspect}:${datetime}`,
+      kind: eclipse?.kind || (arc.aspect === 'conjunction' ? 'new_moon' : 'full_moon'),
+      title: eclipseLabel || phase,
+      phase,
+      eclipseType: eclipse?.eclipseType || '',
+      glyph: eclipse ? '◉' : arc.aspect === 'conjunction' ? '●' : '○',
+      datetime,
+      phaseDatetime: phaseTimestamp,
+      dateKey: dateKey(datetime, timeZone),
+      display: moment(datetime, timeZone, { includeTime: true }).display,
+      source: eclipse?.source || 'swiss_ephemeris_sun_moon_exactitude',
+    };
+  }).sort((one, two) => one.datetime.localeCompare(two.datetime));
 }
 
 function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceIdFor(arc)) {
@@ -240,6 +274,10 @@ function labelFor(labels, key) {
 
 function finiteNumber(value) {
   return Number.isFinite(value) ? value : null;
+}
+
+function titleCase(value) {
+  return String(value || '').replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function toTime(value) {

@@ -5,18 +5,16 @@ This integration calculates Mystic Rebels' universal forecast using the rules in
 
 `engine.mjs` is deliberately independent of any ephemeris package. An ephemeris adapter supplies
 timestamped tropical longitudes and apparent longitudinal speeds; the engine owns Alchemystic
-direction, OOI, True Aspect, Forced Aspect, Fringe, and Aspect Arc classification.
+direction, OOI, Forced Aspect, Fringe, and Aspect Arc classification.
 
-`forecast-scanner.mjs` samples the complete Universal ecosystem, preserves a seven-day focus inside
-a configurable scan, and refines activation, exactitude, and release timestamps to one minute by
-default. The production service scans a buffered 120-day interval so it can emit complete arcs for
-the prior 30 days through the next 30 days.
+`forecast-scanner.mjs` samples the complete Universal ecosystem, preserves the seven-day focus
+inside the rolling calendar used for 30-day history and the next 30 days, and refines activation,
+exactitude, and release timestamps to one minute by default.
 
 `interpretation-engine.mjs` builds the mandatory pre-writing context for each transit. It assesses
 both planets separately, their active Channels, sign Through Points, modern rulers and Delegates,
-then separates the focus planets' direct aspect and rulership **With** layers from indirect,
-concurrent **While** layers. It also groups scanner
-events into Aspect Arc records so Activating, True Aspect/Forced Aspect shifts, Point of Exactitude, the directional handoff, and
+then separates connected **With** layers from concurrent **While** layers. It also groups scanner
+events into Aspect Arc records so Activating, Point of Exactitude, the directional handoff, and
 Releasing can always be retrieved together.
 
 `interpretation-vocabulary.mjs` is the versioned semantic authority used by that plan. It keeps body
@@ -35,10 +33,9 @@ planet one's assessed condition, planet two's separately assessed condition, and
 whose body and aspect keys match the calculated arc, plus the exact vocabulary version used to
 certify those meanings. The record is locked to the exact occurrence by
 the arc's Point of Exactitude, so prose assessed for one occurrence cannot be reused when the same
-bodies form the same aspect again under different conditions. The feed fails closed at the
-interpretation boundary: a missing or mismatched assessment leaves the factual calendar arc
-available but suppresses the prose. This prevents an isolated or stale aspect meaning from being
-presented as an Alchemystic reading.
+bodies form the same aspect again under different conditions. Missing or mismatched assessment
+records are rejected before prose reaches the feed, preventing an isolated or stale aspect meaning
+from being presented as an Alchemystic interpretation.
 
 `forecast-feed.mjs` converts complete Aspect Arcs into the versioned JSON contract consumed by the
 Shopify sections. The homepage `week` collection includes approved editorial interpretations; the

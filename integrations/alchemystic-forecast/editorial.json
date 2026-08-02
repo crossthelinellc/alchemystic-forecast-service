@@ -126,5 +126,28 @@
       },
       "aspect": { "type": "trine", "synthesis": "The Trine applies direct flow from Neptune's assessed signal condition into Mercury's assessed message condition, then hands interpretive direction to Mercury at exactitude without treating inspiration as verified fact." }
     }
+  },
+  "mercury:quincunx:mean_black_moon_lilith:2026-08-06T16:39:39.019Z": {
+    "interpretation": "Mercury in Cancer is trying to make the message emotionally intelligible while its ruler, the Moon, moves from Aries through Taurus and into Gemini. That is already three different instructions: say it now, make it workable, then find the language. Mercury is also carrying Mars, Uranus, and Ceres in Gemini through Inferior Mercury, with Venus and the Mean South Node in Virgo through Superior Mercury until Venus leaves that field. Mean Black Moon Lilith in Sagittarius is not asking to be made reasonable; it directs through Jupiter in Leo and needs enough room for the forbidden want to be visible. The Quincunx does not merge those conditions. Mercury can lend language to the want without editing it into something safer. At exactitude, Lilith begins directing back into Mercury: what could be named becomes the thing the mind now has to account for.",
+    "alignment": "Stop trying to make the honest answer and the acceptable explanation occupy the same space. Name the want cleanly. Then decide what language can carry it without shrinking it or turning it into a demand.",
+    "conditionSummary": "Mercury in Cancer directs through the Moon as the Moon moves from Aries through Taurus into Gemini. Mercury culminates Mars, Uranus, and Ceres in Gemini through Inferior Mercury, adding the Moon by release; its Superior Mercury field carries Venus and the Mean South Node until Venus enters Libra, leaving the Mean South Node. Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo.",
+    "method": {
+      "version": "alchemystic-interpretation.v3",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "occurrenceId": "mercury:quincunx:mean_black_moon_lilith:2026-08-06T16:39:39.019Z",
+      "planetOne": {
+        "body": "mercury",
+        "condition": "Mercury in Cancer directs through the Moon as the Moon moves from Aries through Taurus into Gemini, while Mercury culminates both its Gemini and Virgo fields across the Aspect Arc.",
+        "dualRulership": {
+          "phases": ["activating", "exactitude", "releasing"],
+          "fields": [
+            { "sign": "gemini", "expression": "inferior_mercury", "conditions": { "activating": ["mars", "uranus", "ceres"], "exactitude": ["mars", "uranus", "ceres"], "releasing": ["moon", "mars", "uranus", "ceres"] } },
+            { "sign": "virgo", "expression": "superior_mercury", "conditions": { "activating": ["venus", "mean_south_node"], "exactitude": ["venus", "mean_south_node"], "releasing": ["mean_south_node"] } }
+          ]
+        }
+      },
+      "planetTwo": { "body": "mean_black_moon_lilith", "condition": "Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo, carrying the forbidden want toward visible expression without asking Mercury to make it more acceptable." },
+      "aspect": { "type": "quincunx", "synthesis": "The Quincunx keeps Mercury's assessed message condition and Lilith's assessed forbidden-want condition separate but coexisting: Mercury lends language without forcing merger, then Lilith directs what was named back into Mercury after exactitude." }
+    }
   }
 }

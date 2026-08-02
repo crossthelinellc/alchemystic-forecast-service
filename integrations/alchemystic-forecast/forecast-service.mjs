@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 import { buildForecastFeed } from './forecast-feed.mjs';
 import { scanUniversalForecast } from './forecast-scanner.mjs';
-import { calculateSwissPositions } from './swetest-provider.mjs';
+import { calculateSwissEclipses, calculateSwissPositions } from './swetest-provider.mjs';
 
 const DAY_MS = 86_400_000;
 const DEFAULT_CACHE_MS = 6 * 60 * 60 * 1000;
@@ -17,6 +17,7 @@ const ALLOWED_ORIGINS = new Set([
 
 export function createForecastService({
   positionProvider,
+  eclipseProvider = async () => [],
   loadInterpretations,
   scanForecast = scanUniversalForecast,
   presentForecast = buildForecastFeed,
@@ -26,6 +27,7 @@ export function createForecastService({
   sourceUrl,
 }) {
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
+  if (typeof eclipseProvider !== 'function') throw new TypeError('An eclipse provider is required.');
   if (typeof loadInterpretations !== 'function') throw new TypeError('An interpretation loader is required.');
   assertPublicSourceUrl(sourceUrl);
 
@@ -35,17 +37,22 @@ export function createForecastService({
   async function generate() {
     const current = now();
     const focusStart = startOfDayInTimeZone(current, timeZone);
-    const scanStart = new Date(focusStart.getTime() - 60 * DAY_MS);
+    const scanStart = new Date(focusStart.getTime() - 14 * DAY_MS);
     const forecast = await scanForecast({
       start: scanStart,
-      days: 120,
+      days: 42,
       stepHours: 6,
       precisionMinutes: 1,
       positionProvider,
     });
+    const [interpretations, eclipses] = await Promise.all([
+      loadInterpretations(),
+      eclipseProvider({ start: scanStart, end: new Date(scanStart.getTime() + 42 * DAY_MS) }),
+    ]);
     const feed = presentForecast({
       forecast,
-      interpretations: await loadInterpretations(),
+      interpretations,
+      eclipses,
       now: focusStart,
       timeZone,
     });
@@ -125,6 +132,7 @@ export function createProductionService(env = process.env) {
   return createForecastService({
     sourceUrl,
     positionProvider: (at) => calculateSwissPositions({ at, binaryPath, ephemerisPath }),
+    eclipseProvider: ({ start, end }) => calculateSwissEclipses({ start, end, binaryPath, ephemerisPath }),
     loadInterpretations: async () => JSON.parse(editorialJson || await readFile(editorialPath, 'utf8')),
   });
 }

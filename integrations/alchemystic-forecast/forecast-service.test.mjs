@@ -27,7 +27,7 @@ test('serves a cached, conditional forecast only to Mystic Rebels storefront ori
     loadInterpretations: async () => ({ approved: true }),
     now: () => new Date('2026-08-01T12:00:00Z'),
     scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z', scan: ++scans }),
-    presentForecast: ({ forecast }) => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', scan: forecast.scan, week: [], calendar: { records: [] } }),
+    presentForecast: ({ forecast }) => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', scan: forecast.scan, week: [], outlook: [] }),
   });
 
   const origin = 'https://mysticrebels.com';
@@ -65,7 +65,7 @@ test('coalesces simultaneous cache misses into one forecast calculation', async 
       await new Promise((resolve) => setTimeout(resolve, 10));
       return { window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' };
     },
-    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } }),
+    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], outlook: [] }),
   });
 
   await Promise.all([request(handler), request(handler), request(handler)]);
@@ -90,21 +90,22 @@ test('anchors the forecast day to the configured display timezone', () => {
   );
 });
 
-test('scans with a thirty-day buffer around the rolling history and future window', async () => {
-  let scanInput;
+test('passes authoritative eclipse events into the forecast presentation', async () => {
+  let receivedEclipses;
   const handler = createForecastService({
     sourceUrl: 'https://code.example.com/alchemystic-forecast',
     positionProvider: async () => ({ positions: [] }),
+    eclipseProvider: async () => [{ kind: 'solar_eclipse', timestamp: '2026-08-12T17:45:59.200Z' }],
     loadInterpretations: async () => ({}),
     now: () => new Date('2026-08-01T12:00:00Z'),
-    scanForecast: async (input) => {
-      scanInput = input;
-      return { window: { start: input.start.toISOString() }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' };
+    scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' }),
+    presentForecast: ({ eclipses }) => {
+      receivedEclipses = eclipses;
+      return { schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } };
     },
-    presentForecast: () => ({ schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } }),
   });
 
-  await request(handler);
-  assert.equal(scanInput.start.toISOString(), '2026-06-02T05:00:00.000Z');
-  assert.equal(scanInput.days, 120);
+  const response = await request(handler);
+  assert.equal(response.status, 200);
+  assert.equal(receivedEclipses[0].kind, 'solar_eclipse');
 });

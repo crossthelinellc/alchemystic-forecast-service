@@ -37,6 +37,29 @@ export function calculateSwissPositions({ at, binaryPath, ephemerisPath }) {
 
   return parseSwetestOutput(output, instant);
 }
+
+export function calculateSwissEclipses({ start, end, binaryPath, ephemerisPath }) {
+  const startInstant = start instanceof Date ? start : new Date(start);
+  const endInstant = end instanceof Date ? end : new Date(end);
+  if (Number.isNaN(startInstant.getTime()) || Number.isNaN(endInstant.getTime()) || endInstant <= startInstant) {
+    throw new TypeError('A valid eclipse search range is required.');
+  }
+  if (!binaryPath) throw new TypeError('The swetest binary path is required.');
+  if (!ephemerisPath) throw new TypeError('The Swiss Ephemeris data path is required.');
+
+  return ['solar', 'lunar'].flatMap((kind) => {
+    const output = execFileSync(binaryPath, buildEclipseArguments(startInstant, ephemerisPath, kind), {
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    return parseSwissEclipseOutput(output, kind);
+  }).filter(({ timestamp }) => {
+    const time = new Date(timestamp).getTime();
+    return time >= startInstant.getTime() && time <= endInstant.getTime();
+  }).sort((one, two) => one.timestamp.localeCompare(two.timestamp));
+}
+
 export function parseSwetestOutput(output, instant = new Date()) {
   if (/\b(error|warning):/i.test(output)) {
     throw new Error(`Swiss Ephemeris did not produce authoritative data:\n${output.trim()}`);
@@ -68,6 +91,27 @@ export function parseSwetestOutput(output, instant = new Date()) {
   };
 }
 
+export function parseSwissEclipseOutput(output, requestedKind) {
+  if (!['solar', 'lunar'].includes(requestedKind)) throw new RangeError('Eclipse kind must be solar or lunar.');
+  if (/\b(error|warning):/i.test(output)) {
+    throw new Error(`Swiss Ephemeris did not produce authoritative eclipse data:\n${output.trim()}`);
+  }
+
+  const eventPattern = /^(total|partial|annular|annular-total|penumb\.)\s+(solar|lunar)(?:\s+eclipse)?\s+(\d{1,2}\.\d{1,2}\.\d{4})\s+(\d{1,2}:\s*\d{1,2}:\d{1,2}(?:\.\d+)?)/i;
+  return output.split(/\r?\n/).map((line) => line.trim()).flatMap((line) => {
+    const match = line.match(eventPattern);
+    if (!match) return [];
+    const [, rawType, kind, rawDate, rawTime] = match;
+    if (kind.toLowerCase() !== requestedKind) return [];
+    return [{
+      kind: `${requestedKind}_eclipse`,
+      eclipseType: rawType.toLowerCase() === 'penumb.' ? 'penumbral' : rawType.toLowerCase(),
+      timestamp: eclipseTimestamp(rawDate, rawTime),
+      source: 'swiss_ephemeris_global_eclipse_search',
+    }];
+  });
+}
+
 function buildArguments(instant, ephemerisPath) {
   const day = instant.getUTCDate();
   const month = instant.getUTCMonth() + 1;
@@ -87,6 +131,33 @@ function buildArguments(instant, ephemerisPath) {
     '-eswe',
     '-speed',
   ];
+}
+
+function buildEclipseArguments(instant, ephemerisPath, kind) {
+  return [
+    `-edir${ephemerisPath}`,
+    `-b${instant.getUTCDate()}.${instant.getUTCMonth() + 1}.${instant.getUTCFullYear()}`,
+    kind === 'solar' ? '-solecl' : '-lunecl',
+    '-n8',
+    '-eswe',
+  ];
+}
+
+function eclipseTimestamp(rawDate, rawTime) {
+  const [day, month, year] = rawDate.split('.').map(Number);
+  const [hour, minute, rawSecond] = rawTime.replace(/\s+/g, '').split(':');
+  const seconds = Number(rawSecond);
+  const wholeSeconds = Math.trunc(seconds);
+  const milliseconds = Math.round((seconds - wholeSeconds) * 1000);
+  return new Date(Date.UTC(
+    year,
+    month - 1,
+    day,
+    Number(hour),
+    Number(minute),
+    wholeSeconds,
+    milliseconds,
+  )).toISOString();
 }
 
 function parsePositionLine(line) {
