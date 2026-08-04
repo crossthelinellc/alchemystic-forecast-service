@@ -75,8 +75,9 @@ export function groupAspectArcs(events) {
   const sorted = [...events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
   for (const event of sorted) {
+    const relationshipKey = [[event.planetOne, event.planetTwo].sort().join(':'), event.aspect].join(':');
     const key = [event.planetOne, event.aspect, event.planetTwo].join(':');
-    let arc = open.get(key);
+    let arc = open.get(relationshipKey);
     if (event.type === 'true_aspect_activation' || !arc) {
       arc = {
         key,
@@ -87,7 +88,7 @@ export function groupAspectArcs(events) {
         events: [],
       };
       arcs.push(arc);
-      open.set(key, arc);
+      open.set(relationshipKey, arc);
     }
 
     arc.events.push(event);
@@ -101,7 +102,7 @@ export function groupAspectArcs(events) {
     }
     if (event.type === 'aspect_release') {
       arc.moments.releasing = event.timestamp;
-      open.delete(key);
+      open.delete(relationshipKey);
     }
   }
 

@@ -220,3 +220,23 @@ test('keeps activating, exactitude handoff, and releasing together on one arc', 
     after: 'mercury_to_pallas',
   });
 });
+
+test('keeps one complete arc when the directed body order reverses at exactitude', () => {
+  const arcs = groupAspectArcs([
+    { type: 'true_aspect_activation', timestamp: '2026-08-11T00:00:00.000Z', planetOne: 'sun', aspect: 'conjunction', planetTwo: 'moon' },
+    { type: 'point_of_exactitude', timestamp: '2026-08-12T12:00:00.000Z', planetOne: 'moon', aspect: 'conjunction', planetTwo: 'sun' },
+    { type: 'aspect_release', timestamp: '2026-08-14T00:00:00.000Z', planetOne: 'moon', aspect: 'conjunction', planetTwo: 'sun' },
+  ]);
+
+  assert.equal(arcs.length, 1);
+  assert.equal(arcs[0].key, 'sun:conjunction:moon');
+  assert.deepEqual(arcs[0].moments, {
+    activating: '2026-08-11T00:00:00.000Z',
+    pointOfExactitude: '2026-08-12T12:00:00.000Z',
+    releasing: '2026-08-14T00:00:00.000Z',
+  });
+  assert.deepEqual(arcs[0].handoff, {
+    before: 'moon_to_sun',
+    after: 'sun_to_moon',
+  });
+});
