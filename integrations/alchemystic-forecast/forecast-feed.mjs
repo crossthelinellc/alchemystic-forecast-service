@@ -109,6 +109,7 @@ function serializeLunarEvents(arcs, eclipses, lunarSnapshots, interpretations, c
     const astronomicalLabel = eclipse ? `${titleCase(eclipse.eclipseType)} ${eclipseKind === 'solar_eclipse' ? 'Solar' : 'Lunar'} Eclipse` : '';
     const occurrenceId = occurrenceIdFor(arc);
     const transit = serializeArc(arc, interpretations[occurrenceId], currentTime, timeZone, occurrenceId);
+    if (!transit) return null;
     return {
       id: `lunar:${arc.aspect}:${datetime}`,
       recordId: occurrenceId,
@@ -141,7 +142,7 @@ function serializeLunarEvents(arcs, eclipses, lunarSnapshots, interpretations, c
       alignment: transit?.alignment || '',
       conditionSummary: transit?.conditionSummary || '',
     };
-  }).sort((one, two) => one.datetime.localeCompare(two.datetime));
+  }).filter(Boolean).sort((one, two) => one.datetime.localeCompare(two.datetime));
 }
 
 function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceIdFor(arc)) {
