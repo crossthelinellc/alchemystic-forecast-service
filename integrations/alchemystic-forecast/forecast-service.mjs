@@ -48,10 +48,11 @@ export function createForecastService({
       precisionMinutes: 1,
       positionProvider,
     });
-    const [approvedInterpretations, foundationalInterpretations, eclipses] = await Promise.all([
+    const [approvedInterpretations, foundationalInterpretations, eclipses, lunarSnapshots] = await Promise.all([
       loadInterpretations(),
       createFoundationalTranslations({ forecast, positionProvider }),
       eclipseProvider({ start: scanStart, end: new Date(scanStart.getTime() + 42 * DAY_MS) }),
+      lunarExactitudeSnapshots(forecast.arcs, positionProvider),
     ]);
     const feed = presentForecast({
       forecast,
@@ -60,6 +61,7 @@ export function createForecastService({
         ...approvedInterpretations,
       },
       eclipses,
+      lunarSnapshots,
       now: focusStart,
       timeZone,
     });
@@ -125,6 +127,17 @@ export function createForecastService({
       json(response, 503, { error: 'Forecast temporarily unavailable' });
     }
   };
+}
+
+async function lunarExactitudeSnapshots(arcs, positionProvider) {
+  const timestamps = [...new Set((arcs || []).filter((arc) => {
+    const bodies = new Set([arc?.planetOne, arc?.planetTwo]);
+    return bodies.has('sun') && bodies.has('moon') && ['conjunction', 'opposition'].includes(arc?.aspect);
+  }).map((arc) => new Date(arc.moments?.pointOfExactitude).toISOString()))];
+  return Promise.all(timestamps.map(async (timestamp) => ({
+    timestamp,
+    positions: (await positionProvider(new Date(timestamp)))?.positions || [],
+  })));
 }
 
 export function createProductionService(env = process.env) {

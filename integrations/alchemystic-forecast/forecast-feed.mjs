@@ -1,4 +1,5 @@
 import { INTERPRETATION_VOCABULARY_VERSION } from './interpretation-vocabulary.mjs';
+import { classifyAlchemysticEclipse } from './eclipse-classification.mjs';
 
 const DAY_MS = 86_400_000;
 const HISTORY_DAYS = 30;
@@ -29,6 +30,8 @@ const ASPECT_GLYPHS = Object.freeze({
   trine: '△', quincunx: '⚻', opposition: '☍',
 });
 
+const LUNAR_EVENT_ASPECTS = new Set(Object.keys(ASPECT_LABELS));
+
 const BODY_FAMILIES = Object.freeze({
   sun: 'luminary', moon: 'luminary',
   mercury: 'personal', venus: 'personal', mars: 'personal',
@@ -38,7 +41,7 @@ const BODY_FAMILIES = Object.freeze({
   mean_black_moon_lilith: 'point', mean_north_node: 'point', mean_south_node: 'point',
 });
 
-export function buildForecastFeed({ forecast, interpretations, eclipses = [], now, timeZone = 'America/Chicago' }) {
+export function buildForecastFeed({ forecast, interpretations, eclipses = [], lunarSnapshots = [], now, timeZone = 'America/Chicago' }) {
   if (!forecast?.window || !Array.isArray(forecast.arcs)) {
     throw new TypeError('A scanned universal forecast is required.');
   }
@@ -58,7 +61,7 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], no
     .filter(Boolean)
     .filter(({ range }) => toTime(range.end) >= calendarStart && toTime(range.start) <= calendarEnd)
     .sort((one, two) => one.range.focus.localeCompare(two.range.focus));
-  const lunarEvents = serializeLunarEvents(forecast.arcs, eclipses, timeZone)
+  const lunarEvents = serializeLunarEvents(forecast.arcs, eclipses, lunarSnapshots, interpretations, currentTime, timeZone)
     .filter(({ datetime }) => toTime(datetime) >= calendarStart && toTime(datetime) <= calendarEnd);
 
   return {
@@ -82,33 +85,61 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], no
   };
 }
 
-function serializeLunarEvents(arcs, eclipses, timeZone) {
+function serializeLunarEvents(arcs, eclipses, lunarSnapshots, interpretations, currentTime, timeZone) {
   const eclipseEvents = Array.isArray(eclipses) ? eclipses : [];
+  const snapshots = new Map((Array.isArray(lunarSnapshots) ? lunarSnapshots : [])
+    .map((snapshot) => [new Date(snapshot?.timestamp).toISOString(), snapshot?.positions || []]));
   return arcs.filter((arc) => {
     const bodies = new Set([arc?.planetOne, arc?.planetTwo]);
-    return bodies.has('sun') && bodies.has('moon') && ['conjunction', 'opposition'].includes(arc?.aspect);
+    return bodies.has('sun') && bodies.has('moon') && LUNAR_EVENT_ASPECTS.has(arc?.aspect);
   }).map((arc) => {
-    const phase = arc.aspect === 'conjunction' ? 'New Moon' : 'Full Moon';
-    const eclipseKind = arc.aspect === 'conjunction' ? 'solar_eclipse' : 'lunar_eclipse';
+    const phase = arc.aspect === 'conjunction' ? 'New Moon' : arc.aspect === 'opposition' ? 'Full Moon' : '';
+    const relationship = `${labelFor(BODY_LABELS, arc.planetOne)} ${labelFor(ASPECT_LABELS, arc.aspect)} ${labelFor(BODY_LABELS, arc.planetTwo)}`;
+    const eclipseKind = arc.aspect === 'conjunction' ? 'solar_eclipse' : arc.aspect === 'opposition' ? 'lunar_eclipse' : '';
     const phaseTimestamp = new Date(arc.moments?.pointOfExactitude).toISOString();
+    const classification = phase ? classifyAlchemysticEclipse({
+      phase,
+      positions: snapshots.get(phaseTimestamp),
+    }) : null;
     const eclipse = eclipseEvents.find((candidate) => (
-      candidate.kind === eclipseKind
+      eclipseKind && candidate.kind === eclipseKind
       && Math.abs(toTime(candidate.timestamp) - toTime(phaseTimestamp)) <= 18 * 60 * 60 * 1000
     ));
     const datetime = eclipse?.timestamp || phaseTimestamp;
-    const eclipseLabel = eclipse ? `${titleCase(eclipse.eclipseType)} ${eclipseKind === 'solar_eclipse' ? 'Solar' : 'Lunar'} Eclipse` : '';
+    const astronomicalLabel = eclipse ? `${titleCase(eclipse.eclipseType)} ${eclipseKind === 'solar_eclipse' ? 'Solar' : 'Lunar'} Eclipse` : '';
+    const occurrenceId = occurrenceIdFor(arc);
+    const transit = serializeArc(arc, interpretations[occurrenceId], currentTime, timeZone, occurrenceId);
     return {
       id: `lunar:${arc.aspect}:${datetime}`,
-      kind: eclipse?.kind || (arc.aspect === 'conjunction' ? 'new_moon' : 'full_moon'),
-      title: eclipseLabel || phase,
+      recordId: occurrenceId,
+      kind: classification ? eclipseKind : phase ? (arc.aspect === 'conjunction' ? 'new_moon' : 'full_moon') : 'sun_moon_aspect',
+      title: classification?.title || phase || relationship,
       phase,
-      eclipseType: eclipse?.eclipseType || '',
-      glyph: eclipse ? '◉' : arc.aspect === 'conjunction' ? '●' : '○',
+      relationship,
+      planetOneKey: arc.planetOne,
+      planetOne: labelFor(BODY_LABELS, arc.planetOne),
+      aspectKey: arc.aspect,
+      aspect: labelFor(ASPECT_LABELS, arc.aspect),
+      aspectGlyph: labelFor(ASPECT_GLYPHS, arc.aspect),
+      planetTwoKey: arc.planetTwo,
+      planetTwo: labelFor(BODY_LABELS, arc.planetTwo),
+      eclipseClass: classification?.eclipseClass || '',
+      eclipseOrientation: classification?.orientation || '',
+      relevantNodeKey: classification?.relevantNodeKey || '',
+      nodeDistance: classification?.nodeDistance ?? null,
+      nodeAxis: classification?.nodeAxis || [],
+      astronomicalType: eclipse?.eclipseType || '',
+      astronomicalLabel,
+      glyph: classification ? '◉' : phase ? (arc.aspect === 'conjunction' ? '●' : '○') : labelFor(ASPECT_GLYPHS, arc.aspect),
       datetime,
       phaseDatetime: phaseTimestamp,
       dateKey: dateKey(datetime, timeZone),
       display: moment(datetime, timeZone, { includeTime: true }).display,
       source: eclipse?.source || 'swiss_ephemeris_sun_moon_exactitude',
+      hasInterpretation: Boolean(transit?.hasInterpretation),
+      interpretation: transit?.interpretation || '',
+      alignment: transit?.alignment || '',
+      conditionSummary: transit?.conditionSummary || '',
     };
   }).sort((one, two) => one.datetime.localeCompare(two.datetime));
 }

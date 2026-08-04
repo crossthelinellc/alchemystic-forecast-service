@@ -5,7 +5,7 @@
     "conditionSummary": "Venus in Virgo directs through Mercury in Cancer and culminates Chiron retrograde in Taurus through Inferior Venus. Its Superior Venus field activates when Venus enters Libra before release. Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "venus:square:mean_black_moon_lilith:2026-08-02T00:29:46.937Z",
       "planetOne": {
         "body": "venus",
@@ -28,7 +28,7 @@
     "conditionSummary": "Pallas in Aries directs through Mars in Gemini. Mercury in Cancer directs through the Moon in Aries while culminating Mars, Uranus, and Ceres in Gemini through Inferior Mercury, and Venus with the Mean South Node in Virgo through Superior Mercury.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "pallas:square:mercury:2026-08-03T23:09:10.976Z",
       "planetOne": { "body": "pallas", "condition": "Pallas in Aries directs through Mars in Gemini, making strategy immediate, verbal, mobile, and option-aware." },
       "planetTwo": {
@@ -51,7 +51,7 @@
     "conditionSummary": "Saturn retrograde in Aries directs through Mars in Gemini. The Sun is in Leo and directs through itself.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "saturn:trine:sun:2026-08-07T02:44:03.517Z",
       "planetOne": { "body": "saturn", "condition": "Saturn retrograde in Aries carries unfinished authority, structure, responsibility, and rules through Mars." },
       "planetTwo": { "body": "sun", "condition": "The Sun in Leo is self-directed vitality, purpose, visibility, and authentic creative presence." },
@@ -64,7 +64,7 @@
     "conditionSummary": "Chiron retrograde in Taurus directs through Venus in Libra. Mercury moves from Cancer through the Moon into Leo through the Sun. Its Inferior Mercury field changes from Moon, Mars, Uranus, and Ceres at activation to Uranus and Ceres at release; its Superior Mercury field carries the Mean South Node throughout.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "chiron:square:mercury:2026-08-10T05:15:34.011Z",
       "planetOne": { "body": "chiron", "condition": "Chiron retrograde in Taurus directs through Venus in Libra, carrying insecurity around whether an idea has enough value to exist." },
       "planetTwo": {
@@ -87,7 +87,7 @@
     "conditionSummary": "Uranus in Gemini directs through Mercury in Leo and carries Pluto in Aquarius as Delegate. Mercury in Leo directs through the Sun while culminating Mars, Uranus, and Ceres in Gemini at activation, Uranus and Ceres at exactitude, Uranus at release, and the Mean South Node in Virgo throughout.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "uranus:sextile:mercury:2026-08-12T20:47:49.824Z",
       "planetOne": { "body": "uranus", "condition": "Uranus in Gemini directs through Mercury in Leo and carries Pluto in Aquarius as Delegate, bringing innovation through ideas, voice, and systemic depth." },
       "planetTwo": {
@@ -110,7 +110,7 @@
     "conditionSummary": "Neptune retrograde in Aries directs through Mars as Mars moves from Gemini into Cancer. Mercury in Leo directs through the Sun while culminating Mars, Uranus, and Ceres in Gemini at activation, Uranus and Ceres at exactitude, Uranus at release, the Mean South Node in Virgo throughout, and the Moon in Virgo at release.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "neptune:trine:mercury:2026-08-12T03:38:39.787Z",
       "planetOne": { "body": "neptune", "condition": "Neptune retrograde in Aries directs through Mars as Mars moves from Gemini into Cancer, carrying the unknown through mental motion before becoming protective and memory-loaded." },
       "planetTwo": {
@@ -133,7 +133,7 @@
     "conditionSummary": "Mercury in Cancer directs through the Moon as the Moon moves from Aries through Taurus into Gemini. Mercury culminates Mars, Uranus, and Ceres in Gemini through Inferior Mercury, adding the Moon by release; its Superior Mercury field carries Venus and the Mean South Node until Venus enters Libra, leaving the Mean South Node. Mean Black Moon Lilith in Sagittarius directs through Jupiter in Leo.",
     "method": {
       "version": "alchemystic-interpretation.v3",
-      "vocabularyVersion": "alchemystic-vocabulary.2026-08-01.1",
+      "vocabularyVersion": "alchemystic-vocabulary.2026-08-04.1",
       "occurrenceId": "mercury:quincunx:mean_black_moon_lilith:2026-08-06T16:39:39.019Z",
       "planetOne": {
         "body": "mercury",

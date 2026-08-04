@@ -43,7 +43,7 @@ test('creates a private queue and marks only integrity-checked editorial as appr
         alignment: 'Approved guidance.',
         method: {
           version: 'alchemystic-interpretation.v3',
-          vocabularyVersion: 'alchemystic-vocabulary.2026-08-01.1',
+          vocabularyVersion: 'alchemystic-vocabulary.2026-08-04.1',
           occurrenceId,
           planetOne: { body: 'pallas', condition: 'Assessed independently.' },
           planetTwo: {

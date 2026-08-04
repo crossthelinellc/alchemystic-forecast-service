@@ -30,6 +30,7 @@ const positions = [
   { key: 'mercury', longitude: 90, speed: 1.1 },
   { key: 'mars', longitude: 15, speed: 0.5 },
   { key: 'moon', longitude: 110, speed: 13 },
+  { key: 'sun', longitude: 20, speed: 1 },
   { key: 'uranus', longitude: 65, speed: 0.01 },
   { key: 'saturn', longitude: 165, speed: -0.04 },
 ];
@@ -55,19 +56,26 @@ test('builds a complete foundational translation from both assessed planetary co
   assert.equal(hasCompleteInterpretationMethod(arc, translation.method, dossier.id), true);
 });
 
-test('generates translations for complete non-lunar arcs and keeps lunar contacts separate', async () => {
-  const lunarArc = {
+test('generates translations for Sun-Moon Lunar Events while keeping ordinary Moon transits separate', async () => {
+  const ordinaryMoonArc = {
     ...arc,
     key: 'moon:square:mercury',
     planetOne: 'moon',
   };
+  const lunarEventArc = {
+    ...arc,
+    key: 'moon:square:sun',
+    planetOne: 'moon',
+    planetTwo: 'sun',
+  };
   const translations = await buildFoundationalTranslations({
-    forecast: { arcs: [arc, lunarArc] },
+    forecast: { arcs: [arc, ordinaryMoonArc, lunarEventArc] },
     positionProvider,
   });
 
   assert.deepEqual(Object.keys(translations), [
     'pallas:square:mercury:2026-08-03T12:00:00.000Z',
+    'moon:square:sun:2026-08-03T12:00:00.000Z',
   ]);
 
   const feed = buildForecastFeed({

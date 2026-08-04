@@ -1,4 +1,4 @@
-export const INTERPRETATION_VOCABULARY_VERSION = 'alchemystic-vocabulary.2026-08-01.1';
+export const INTERPRETATION_VOCABULARY_VERSION = 'alchemystic-vocabulary.2026-08-04.1';
 
 export const VOCABULARY_SOURCES = deepFreeze({
   book: 'I Fixed Astrology, Original Edition',
@@ -6,7 +6,7 @@ export const VOCABULARY_SOURCES = deepFreeze({
     bodies: ['Keywords, pp. 134-140', 'Chiron, pp. 683-694', 'Ceres, pp. 701-703', 'Juno, pp. 735-738', 'Pallas Athene, pp. 752-753', 'Vesta, pp. 767-768'],
     signs: ['Signs, pp. 197-206', 'Bidirectional Rulership, pp. 207-208'],
     aspects: ['Defining the Major Aspects, pp. 310-316', 'Aspect Spectrum and Energy Flow, pp. 316-346'],
-    points: ['Lunar Nodes, pp. 601-609', 'Black Moon Lilith and Lilith Arc, pp. 611-617'],
+    points: ['North and South Node definitions, pp. 571-572', 'Lunar Nodes, pp. 601-609', 'Eclipse Conditions, pp. 595-597', 'Black Moon Lilith and Lilith Arc, pp. 611-617'],
   },
   authorConfirmed: ['OOI and Fringe rules', 'Activating / Point of Exactitude / Releasing behavior', 'True Aspect / Forced Aspect terminology', 'Inferior and Superior Mercury / Venus culmination'],
 });
@@ -30,8 +30,8 @@ export const BODY_VOCABULARY = deepFreeze({
   juno: entry('Terms of commitment', 'Concentrates the conditions, agreements, loyalty, purpose, sovereignty, and periodic reassessment required for commitment.', ['commitment', 'conditions', 'agreement', 'loyalty', 'contract', 'devotion', 'reassessment', 'sovereignty'], ['relationship itself', 'jealousy', 'infidelity', 'soulmate']),
   vesta: entry('The eternal flame', 'Concentrates the protected inner fire that survives impact and becomes devotion, integrity, purpose, and sacred endurance.', ['eternal flame', 'devotion', 'integrity', 'purpose', 'survival', 'endurance', 'protected energy'], ['generic domesticity']),
   mean_black_moon_lilith: entry('Forbidden desire and liberation', 'Receives influence around internalized guilt, shame, regret, forbidden wants, emotional permission, and liberation that must remain reflected into real-life consequences.', ['guilt', 'shame', 'regret', 'forbidden desire', 'permission', 'liberation', 'deep wants', 'invisible mirror'], ['unrestrained reaction', 'mythological Lilith']),
-  mean_north_node: entry('Foreign growth trajectory', 'Receives influence as an unfamiliar future-facing direction of growth; it is a trajectory rather than a destination or fate.', ['foreign', 'uncomfortable', 'growth', 'future trajectory', 'forward alignment', 'evolution'], ['destiny', 'fate', 'past life', 'final destination']),
-  mean_south_node: entry('Familiar default', 'Receives influence as emotional familiarity, learned habit, security, present-or-past default settings, and strengths that support the North Node trajectory.', ['familiarity', 'habit', 'security', 'comfort zone', 'default setting', 'learned strength', 'past and present'], ['past life', 'something to abandon']),
+  mean_north_node: entry('Direction, not origin', 'Receives influence as an uncomfortable evolutionary direction inside an already familiar field. It must be reworked gradually rather than copied, idealized, or treated as fate.', ['direction', 'uncomfortable', 'awkward', 'evolution', 'rework', 'gradual development'], ['destiny', 'fate', 'past life', 'final destination', 'automatic growth']),
+  mean_south_node: entry('Inherited coding and familiar default', 'Receives influence as learned or inherited coding that comes easily and feels safe, but creates stagnation when overused. Keep and refine the gift while releasing dependency on the default.', ['coding', 'familiarity', 'habit', 'safety', 'default setting', 'learned strength', 'refinement'], ['past life', 'something to abandon', 'leave it behind']),
 });
 
 export const SIGN_VOCABULARY = deepFreeze({
@@ -79,6 +79,8 @@ export const DOCTRINE_BOUNDARIES = deepFreeze([
   'Gemini and Virgo both culminate in Mercury; Taurus and Libra both culminate in Venus.',
   'Improvement belongs to Aquarius and Uranus. Virgo observes, criticizes, scrutinizes, analyzes details, and applies efficiency.',
   'Connected aspect and rulership paths are With layers. Unconnected simultaneous bodies are While layers.',
+  'The North and South Nodes form one axis. The South Node is refined rather than abandoned; the North Node is evolved rather than copied.',
+  'For eclipses, the Node nearest the Moon determines Northern or Southern orientation. True is within 3°, Forced is beyond 3° through 10°, and Fringe is beyond 10° through 13°.',
   'Do not use mythology, essential dignity, good/bad scoring, a final dispositor, or isolated aspect boilerplate as doctrine.',
 ]);
 

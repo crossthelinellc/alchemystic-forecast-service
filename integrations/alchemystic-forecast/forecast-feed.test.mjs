@@ -138,7 +138,7 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.calendar.records.length, 1);
 });
 
-test('publishes New Moons, Full Moons, and authoritative eclipse classifications separately', () => {
+test('publishes separate Alchemystic and astronomical eclipse classifications', () => {
   const newMoonArc = {
     ...completeArc,
     key: 'sun:conjunction:moon',
@@ -173,13 +173,60 @@ test('publishes New Moons, Full Moons, and authoritative eclipse classifications
       { kind: 'solar_eclipse', eclipseType: 'total', timestamp: '2026-08-12T17:45:59.200Z', source: 'swiss_ephemeris_global_eclipse_search' },
       { kind: 'lunar_eclipse', eclipseType: 'partial', timestamp: '2026-08-28T04:12:58.000Z', source: 'swiss_ephemeris_global_eclipse_search' },
     ],
+    lunarSnapshots: [
+      {
+        timestamp: '2026-08-12T17:46:00.000Z',
+        positions: [
+          { key: 'sun', longitude: 140 }, { key: 'moon', longitude: 140 },
+          { key: 'mean_north_node', longitude: 146 }, { key: 'mean_south_node', longitude: 326 },
+        ],
+      },
+      {
+        timestamp: '2026-08-28T04:13:00.000Z',
+        positions: [
+          { key: 'sun', longitude: 155 }, { key: 'moon', longitude: 335 },
+          { key: 'mean_north_node', longitude: 157 }, { key: 'mean_south_node', longitude: 337 },
+        ],
+      },
+    ],
     interpretations: {},
   });
 
-  assert.deepEqual(feed.calendar.lunarEvents.map(({ title, phase, dateKey, source }) => ({ title, phase, dateKey, source })), [
-    { title: 'Total Solar Eclipse', phase: 'New Moon', dateKey: '2026-08-12', source: 'swiss_ephemeris_global_eclipse_search' },
-    { title: 'Partial Lunar Eclipse', phase: 'Full Moon', dateKey: '2026-08-27', source: 'swiss_ephemeris_global_eclipse_search' },
+  assert.deepEqual(feed.calendar.lunarEvents.map(({ title, phase, astronomicalLabel, relevantNodeKey, dateKey }) => ({ title, phase, astronomicalLabel, relevantNodeKey, dateKey })), [
+    { title: 'Forced Northern Solar Eclipse', phase: 'New Moon', astronomicalLabel: 'Total Solar Eclipse', relevantNodeKey: 'mean_north_node', dateKey: '2026-08-12' },
+    { title: 'True Southern Lunar Eclipse', phase: 'Full Moon', astronomicalLabel: 'Partial Lunar Eclipse', relevantNodeKey: 'mean_south_node', dateKey: '2026-08-27' },
   ]);
+});
+
+test('publishes all five intermediate Sun-Moon aspects as complete Lunar Event arcs', () => {
+  const aspects = ['semi_sextile', 'sextile', 'square', 'trine', 'quincunx'];
+  const arcs = aspects.map((aspect, index) => ({
+    ...completeArc,
+    key: `moon:${aspect}:sun`,
+    planetOne: 'moon',
+    planetTwo: 'sun',
+    aspect,
+    moments: {
+      activating: `2026-08-${String(index + 2).padStart(2, '0')}T12:00:00Z`,
+      pointOfExactitude: `2026-08-${String(index + 3).padStart(2, '0')}T12:00:00Z`,
+      releasing: `2026-08-${String(index + 4).padStart(2, '0')}T12:00:00Z`,
+    },
+  }));
+  const feed = buildForecastFeed({
+    now: '2026-08-01T12:00:00Z',
+    forecast: { generatedAt: '2026-08-01T12:00:00Z', window: { start: '2026-08-01T12:00:00Z' }, arcs },
+    interpretations: {},
+  });
+
+  assert.deepEqual(feed.calendar.lunarEvents.map(({ aspectKey, title, recordId }) => ({ aspectKey, title, recordId })), [
+    { aspectKey: 'semi_sextile', title: 'Moon Semi-sextiles Sun', recordId: occurrenceIdFor(arcs[0]) },
+    { aspectKey: 'sextile', title: 'Moon Sextiles Sun', recordId: occurrenceIdFor(arcs[1]) },
+    { aspectKey: 'square', title: 'Moon Squares Sun', recordId: occurrenceIdFor(arcs[2]) },
+    { aspectKey: 'trine', title: 'Moon Trines Sun', recordId: occurrenceIdFor(arcs[3]) },
+    { aspectKey: 'quincunx', title: 'Moon Quincunxes Sun', recordId: occurrenceIdFor(arcs[4]) },
+  ]);
+  assert.equal(feed.calendar.records.find(({ id }) => id === occurrenceIdFor(arcs[4])).range.startDate, '2026-08-06');
+  assert.equal(feed.calendar.records.find(({ id }) => id === occurrenceIdFor(arcs[4])).range.endDate, '2026-08-08');
 });
 
 test('publishes a Chronicle link only when editorial supplies a specific article URL', () => {

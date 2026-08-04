@@ -51,6 +51,15 @@ rolling `calendar` collection retains calculated arcs whether or not editorial c
 Unapproved records are clearly marked as calculated timing only instead of receiving invented
 forecast language.
 
+The forecast keeps Moon aspects to every other body in **Moon Transits** and reserves
+**Lunar Events** for the complete seven-aspect Sun–Moon cycle: Conjunction/New Moon,
+Semi-sextile, Sextile, Square, Trine, Quincunx, and Opposition/Full Moon. Each is a complete
+Aspect Arc with Activating, Applying, Point of Exactitude, Separating, contact transitions, and
+Releasing—not an isolated exact date. Eclipse orientation comes from the Mean Node nearest the
+Moon; within 3° is True, beyond 3° through 10° is Forced, and beyond 10° through 13° is Fringe.
+Both Nodes remain in context, while Swiss Ephemeris visual eclipse types stay separate from the
+Alchemystic classification. Node and eclipse definitions come only from *I Fixed Astrology*.
+
 `interpretation-dossier.mjs` calculates a private, prose-free editorial dossier for every complete
 non-lunar Aspect Arc with an Activating, Exactitude, or Releasing moment inside the current
 seven-day focus. Lunar contacts remain reserved for the separate lunar calendar, while active
