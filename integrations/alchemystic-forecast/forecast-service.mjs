@@ -5,8 +5,7 @@ import { pathToFileURL } from 'node:url';
 
 import { buildForecastFeed } from './forecast-feed.mjs';
 import { scanUniversalForecast } from './forecast-scanner.mjs';
-import { buildFoundationalTranslations } from './foundational-translation.mjs';
-import { calculateSwissEclipses, calculateSwissPositions } from './swetest-provider.mjs';
+import { calculateSwissEclipses, calculateSwissNatalChart, calculateSwissPositions } from './swetest-provider.mjs';
 
 const DAY_MS = 86_400_000;
 const DEFAULT_CACHE_MS = 6 * 60 * 60 * 1000;
@@ -20,18 +19,18 @@ export function createForecastService({
   positionProvider,
   eclipseProvider = async () => [],
   loadInterpretations,
-  createFoundationalTranslations = buildFoundationalTranslations,
   scanForecast = scanUniversalForecast,
   presentForecast = buildForecastFeed,
   now = () => new Date(),
   cacheTtlMs = DEFAULT_CACHE_MS,
   timeZone = 'America/Chicago',
   sourceUrl,
+  natalChartProvider,
+  natalCalculationToken,
 }) {
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
   if (typeof eclipseProvider !== 'function') throw new TypeError('An eclipse provider is required.');
   if (typeof loadInterpretations !== 'function') throw new TypeError('An interpretation loader is required.');
-  if (typeof createFoundationalTranslations !== 'function') throw new TypeError('A foundational translation builder is required.');
   assertPublicSourceUrl(sourceUrl);
 
   let cached = null;
@@ -48,21 +47,17 @@ export function createForecastService({
       precisionMinutes: 1,
       positionProvider,
     });
-    const [approvedInterpretations, foundationalInterpretations, eclipses, lunarSnapshots] = await Promise.all([
+    const [interpretations, eclipses, lunarSnapshots] = await Promise.all([
       loadInterpretations(),
-      createFoundationalTranslations({ forecast, positionProvider }),
       eclipseProvider({ start: scanStart, end: new Date(scanStart.getTime() + 42 * DAY_MS) }),
       lunarExactitudeSnapshots(forecast.arcs, positionProvider),
     ]);
     const feed = presentForecast({
       forecast,
-      interpretations: {
-        ...foundationalInterpretations,
-        ...approvedInterpretations,
-      },
+      interpretations,
       eclipses,
       lunarSnapshots,
-      now: current,
+      now: focusStart,
       timeZone,
     });
     return { ...feed, sourceUrl };
@@ -100,6 +95,22 @@ export function createForecastService({
       return;
     }
 
+    if (request.method === 'POST' && url.pathname === '/api/alchemystic-natal-chart') {
+      if (typeof natalChartProvider !== 'function' || !natalCalculationToken) return json(response, 404, { error: 'Not found' });
+      if (!validBearer(request.headers.authorization, natalCalculationToken)) return json(response, 401, { error: 'Unauthorized' });
+      try {
+        const input = await readJson(request);
+        const chart = await natalChartProvider({
+          at: new Date(input.at),
+          latitude: Number(input.latitude),
+          longitude: Number(input.longitude),
+        });
+        return json(response, 200, chart);
+      } catch (error) {
+        console.error('Alchemystic natal calculation failed.', error);
+        return json(response, 422, { error: 'natal_calculation_failed' });
+      }
+    }
     if (request.method !== 'GET') return json(response, 405, { error: 'Method not allowed' });
     if (url.pathname === '/healthz') return json(response, 200, { status: 'ok' });
     if (url.pathname === '/source') {
@@ -146,6 +157,7 @@ export function createProductionService(env = process.env) {
   const sourceUrl = requiredEnvironment(env, 'ALCHEMYSTIC_SOURCE_URL');
   const editorialJson = env.ALCHEMYSTIC_EDITORIAL_JSON;
   const editorialPath = env.ALCHEMYSTIC_EDITORIAL_PATH;
+  const natalCalculationToken = requiredEnvironment(env, 'NATAL_CALCULATION_TOKEN');
   if (!editorialJson && !editorialPath) {
     throw new Error('ALCHEMYSTIC_EDITORIAL_JSON or ALCHEMYSTIC_EDITORIAL_PATH is required.');
   }
@@ -153,6 +165,10 @@ export function createProductionService(env = process.env) {
     sourceUrl,
     positionProvider: (at) => calculateSwissPositions({ at, binaryPath, ephemerisPath }),
     eclipseProvider: ({ start, end }) => calculateSwissEclipses({ start, end, binaryPath, ephemerisPath }),
+    natalChartProvider: ({ at, latitude, longitude }) => calculateSwissNatalChart({
+      at, latitude, longitude, binaryPath, ephemerisPath,
+    }),
+    natalCalculationToken,
     loadInterpretations: async () => JSON.parse(editorialJson || await readFile(editorialPath, 'utf8')),
   });
 }
@@ -208,6 +224,25 @@ function assertPublicSourceUrl(value) {
 function json(response, status, body) {
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(body));
+}
+
+function validBearer(header, expected) {
+  const supplied = header?.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!supplied || supplied.length !== expected.length) return false;
+  let difference = 0;
+  for (let index = 0; index < expected.length; index += 1) difference |= supplied.charCodeAt(index) ^ expected.charCodeAt(index);
+  return difference === 0;
+}
+
+async function readJson(request, limit = 16_384) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > limit) throw new RangeError('Request body is too large.');
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {

@@ -5,6 +5,7 @@ import {
   calculateSwissEclipses,
   calculateSwissPositions,
   parseSwissEclipseOutput,
+  parseSwetestHouses,
   parseSwetestOutput,
 } from './swetest-provider.mjs';
 
@@ -43,6 +44,33 @@ test('rejects Swiss warnings instead of accepting a silent fallback', () => {
     () => parseSwetestOutput(`${fixture}\nwarning: using Moshier eph.`),
     /authoritative data/,
   );
+});
+
+test('parses authoritative Whole-Sign Ascendant and Earth-context cusps', () => {
+  const output = `Houses system W (equal/ whole sign) for long= -97°44'35.1600, lat= 30°16' 1.9200
+house  1         210.0000000  305.0372537
+house  2         240.0000000  0.0000000
+house  3         270.0000000  0.0000000
+house  4         300.0000000  365.1000587
+house  5         330.0000000  0.0000000
+house  6           0.0000000  0.0000000
+house  7          30.0000000  305.0372537
+house  8          60.0000000  0.0000000
+house  9          90.0000000  0.0000000
+house 10         120.0000000  365.1000587
+house 11         150.0000000  0.0000000
+house 12         180.0000000  0.0000000
+Ascendant        222.9868366  305.0372537
+MC               137.5558567  365.1000587`;
+  const result = parseSwetestHouses(output);
+  assert.ok(Math.abs(result.ascendantLongitude - 222.9868366) < 1e-9);
+  assert.ok(Math.abs(result.midheavenLongitude - 137.5558567) < 1e-9);
+  assert.deepEqual(result.wholeSignCusps, [210, 240, 270, 300, 330, 0, 30, 60, 90, 120, 150, 180]);
+});
+
+test('rejects non-Whole-Sign and incomplete house output', () => {
+  assert.throws(() => parseSwetestHouses('Houses system P\nAscendant 10\nMC 20'), /Whole-Sign/);
+  assert.throws(() => parseSwetestHouses('Houses system W (equal/ whole sign)\nAscendant 10'), /incomplete/);
 });
 
 test('can verify against a locally compiled official swetest binary', {
