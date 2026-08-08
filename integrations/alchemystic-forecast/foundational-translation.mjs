@@ -264,11 +264,8 @@ function methodCondition(dossier, body, condition) {
 }
 
 function isEligibleArc(arc) {
-  const hasMoon = arc?.planetOne === 'moon' || arc?.planetTwo === 'moon';
-  const isSunMoon = hasMoon && (arc?.planetOne === 'sun' || arc?.planetTwo === 'sun');
   return Boolean(
     arc?.key
-    && (!hasMoon || isSunMoon)
     && arc.moments?.activating
     && arc.moments?.pointOfExactitude
     && arc.moments?.releasing

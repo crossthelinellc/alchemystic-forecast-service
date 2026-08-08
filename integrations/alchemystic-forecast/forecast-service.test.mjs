@@ -90,6 +90,26 @@ test('anchors the forecast day to the configured display timezone', () => {
   );
 });
 
+test('presents current phases using the actual instant instead of midnight', async () => {
+  let presentedNow;
+  const instant = new Date('2026-08-01T17:42:00Z');
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({}),
+    now: () => instant,
+    scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: instant.toISOString() }),
+    presentForecast: ({ now }) => {
+      presentedNow = now;
+      return { schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } };
+    },
+  });
+
+  const response = await request(handler);
+  assert.equal(response.status, 200);
+  assert.equal(presentedNow.toISOString(), instant.toISOString());
+});
+
 test('passes authoritative eclipse events into the forecast presentation', async () => {
   let receivedEclipses;
   const handler = createForecastService({
