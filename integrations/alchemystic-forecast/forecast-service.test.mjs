@@ -3,7 +3,9 @@ import test from 'node:test';
 
 import { createForecastService, startOfDayInTimeZone } from './forecast-service.mjs';
 
-async function request(handler, { url = '/api/alchemystic-forecast', method = 'GET', headers = {}, body = '' } = {}) {
+async function request(handler, {
+  url = '/api/alchemystic-forecast', method = 'GET', headers = {}, body = '',
+} = {}) {
   const response = {
     headers: new Map(),
     status: null,
@@ -29,10 +31,13 @@ test('serves authenticated Swiss natal calculation without exposing it publicly'
     loadInterpretations: async () => ({}),
     natalCalculationToken: 'calculation-secret',
     natalChartProvider: async ({ at, latitude, longitude }) => ({
-      timestamp: at.toISOString(), latitude, longitude, ephemeris: 'swiss', ascendantLongitude: 12, positions: [],
+      timestamp: at.toISOString(), latitude, longitude, ephemeris: 'swiss',
+      ascendantLongitude: 12, positions: [],
     }),
   });
-  const unauthorized = await request(handler, { url: '/api/alchemystic-natal-chart', method: 'POST', body: '{}' });
+  const unauthorized = await request(handler, {
+    url: '/api/alchemystic-natal-chart', method: 'POST', body: '{}',
+  });
   assert.equal(unauthorized.status, 401);
   const response = await request(handler, {
     url: '/api/alchemystic-natal-chart', method: 'POST',
@@ -114,6 +119,26 @@ test('anchors the forecast day to the configured display timezone', () => {
   );
 });
 
+test('presents current phases using the actual instant instead of midnight', async () => {
+  let presentedNow;
+  const instant = new Date('2026-08-01T17:42:00Z');
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({}),
+    now: () => instant,
+    scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: instant.toISOString() }),
+    presentForecast: ({ now }) => {
+      presentedNow = now;
+      return { schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } };
+    },
+  });
+
+  const response = await request(handler);
+  assert.equal(response.status, 200);
+  assert.equal(presentedNow.toISOString(), instant.toISOString());
+});
+
 test('passes authoritative eclipse events into the forecast presentation', async () => {
   let receivedEclipses;
   const handler = createForecastService({
@@ -132,4 +157,28 @@ test('passes authoritative eclipse events into the forecast presentation', async
   const response = await request(handler);
   assert.equal(response.status, 200);
   assert.equal(receivedEclipses[0].kind, 'solar_eclipse');
+});
+
+test('lets approved occurrence editorial override a generated foundational translation', async () => {
+  let receivedInterpretations;
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({ occurrence: { tier: 'editorial', interpretation: 'Approved.' } }),
+    createFoundationalTranslations: async () => ({
+      occurrence: { tier: 'foundational', interpretation: 'Generated.' },
+      baselineOnly: { tier: 'foundational', interpretation: 'Baseline.' },
+    }),
+    scanForecast: async () => ({ window: { start: '2026-07-18T00:00:00Z' }, arcs: [], generatedAt: '2026-08-01T12:00:00Z' }),
+    presentForecast: ({ interpretations }) => {
+      receivedInterpretations = interpretations;
+      return { schema: 'mystic-rebels.alchemystic-forecast.v1', week: [], calendar: { records: [] } };
+    },
+  });
+
+  const response = await request(handler);
+  assert.equal(response.status, 200);
+  assert.equal(receivedInterpretations.occurrence.interpretation, 'Approved.');
+  assert.equal(receivedInterpretations.occurrence.tier, 'editorial');
+  assert.equal(receivedInterpretations.baselineOnly.interpretation, 'Baseline.');
 });

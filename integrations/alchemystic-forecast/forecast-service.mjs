@@ -1,11 +1,16 @@
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 
 import { buildForecastFeed } from './forecast-feed.mjs';
 import { scanUniversalForecast } from './forecast-scanner.mjs';
-import { calculateSwissEclipses, calculateSwissNatalChart, calculateSwissPositions } from './swetest-provider.mjs';
+import { buildFoundationalTranslations } from './foundational-translation.mjs';
+import {
+  calculateSwissEclipses,
+  calculateSwissNatalChart,
+  calculateSwissPositions,
+} from './swetest-provider.mjs';
 
 const DAY_MS = 86_400_000;
 const DEFAULT_CACHE_MS = 6 * 60 * 60 * 1000;
@@ -19,6 +24,7 @@ export function createForecastService({
   positionProvider,
   eclipseProvider = async () => [],
   loadInterpretations,
+  createFoundationalTranslations = buildFoundationalTranslations,
   scanForecast = scanUniversalForecast,
   presentForecast = buildForecastFeed,
   now = () => new Date(),
@@ -31,6 +37,7 @@ export function createForecastService({
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
   if (typeof eclipseProvider !== 'function') throw new TypeError('An eclipse provider is required.');
   if (typeof loadInterpretations !== 'function') throw new TypeError('An interpretation loader is required.');
+  if (typeof createFoundationalTranslations !== 'function') throw new TypeError('A foundational translation builder is required.');
   assertPublicSourceUrl(sourceUrl);
 
   let cached = null;
@@ -47,17 +54,21 @@ export function createForecastService({
       precisionMinutes: 1,
       positionProvider,
     });
-    const [interpretations, eclipses, lunarSnapshots] = await Promise.all([
+    const [approvedInterpretations, foundationalInterpretations, eclipses, lunarSnapshots] = await Promise.all([
       loadInterpretations(),
+      createFoundationalTranslations({ forecast, positionProvider }),
       eclipseProvider({ start: scanStart, end: new Date(scanStart.getTime() + 42 * DAY_MS) }),
       lunarExactitudeSnapshots(forecast.arcs, positionProvider),
     ]);
     const feed = presentForecast({
       forecast,
-      interpretations,
+      interpretations: {
+        ...foundationalInterpretations,
+        ...approvedInterpretations,
+      },
       eclipses,
       lunarSnapshots,
-      now: focusStart,
+      now: current,
       timeZone,
     });
     return { ...feed, sourceUrl };
@@ -96,8 +107,12 @@ export function createForecastService({
     }
 
     if (request.method === 'POST' && url.pathname === '/api/alchemystic-natal-chart') {
-      if (typeof natalChartProvider !== 'function' || !natalCalculationToken) return json(response, 404, { error: 'Not found' });
-      if (!validBearer(request.headers.authorization, natalCalculationToken)) return json(response, 401, { error: 'Unauthorized' });
+      if (typeof natalChartProvider !== 'function' || !natalCalculationToken) {
+        return json(response, 404, { error: 'Not found' });
+      }
+      if (!validBearer(request.headers.authorization, natalCalculationToken)) {
+        return json(response, 401, { error: 'Unauthorized' });
+      }
       try {
         const input = await readJson(request);
         const chart = await natalChartProvider({
@@ -111,6 +126,7 @@ export function createForecastService({
         return json(response, 422, { error: 'natal_calculation_failed' });
       }
     }
+
     if (request.method !== 'GET') return json(response, 405, { error: 'Method not allowed' });
     if (url.pathname === '/healthz') return json(response, 200, { status: 'ok' });
     if (url.pathname === '/source') {
@@ -228,10 +244,8 @@ function json(response, status, body) {
 
 function validBearer(header, expected) {
   const supplied = header?.startsWith('Bearer ') ? header.slice(7) : '';
-  if (!supplied || supplied.length !== expected.length) return false;
-  let difference = 0;
-  for (let index = 0; index < expected.length; index += 1) difference |= supplied.charCodeAt(index) ^ expected.charCodeAt(index);
-  return difference === 0;
+  if (!supplied || !expected || supplied.length !== expected.length) return false;
+  return timingSafeEqual(Buffer.from(supplied), Buffer.from(expected));
 }
 
 async function readJson(request, limit = 16_384) {
