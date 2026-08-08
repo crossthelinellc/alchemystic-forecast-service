@@ -52,6 +52,18 @@ test('keeps Forced contact separate from mutual direct and Fringe contact', () =
   });
 });
 
+test('honors the semi-sextile geometric limit before classifying OOI contact', () => {
+  const sun = { key: 'sun', ...BODY_CATALOG.sun };
+  const chiron = { key: 'chiron', ...BODY_CATALOG.chiron };
+  const semiSextile = nearestMajorAspect(33 + (26 / 60));
+
+  assert.equal(semiSextile.key, 'semi_sextile');
+  assert.equal(semiSextile.ooiLimit, 3);
+  assert.deepEqual(classifyContact(sun, chiron, semiSextile.deviation, semiSextile), {
+    kind: 'fringe', directImpact: false, forcedBy: null,
+  });
+});
+
 test('treats entry into OOI as a strong True Aspect Activation event', () => {
   const relationship = classifyRelationship(
     [body('mercury', 20, 1.2), body('saturn', 88, 0.03)],

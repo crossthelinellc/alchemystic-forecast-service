@@ -33,7 +33,7 @@ export const BODY_CATALOG = Object.freeze({
 
 export const MAJOR_ASPECTS = Object.freeze([
   { key: 'conjunction', label: 'Conjunction', angle: 0 },
-  { key: 'semi_sextile', label: 'Semi-sextile', angle: 30 },
+  { key: 'semi_sextile', label: 'Semi-sextile', angle: 30, ooiLimit: 3 },
   { key: 'sextile', label: 'Sextile', angle: 60 },
   { key: 'square', label: 'Square', angle: 90 },
   { key: 'trine', label: 'Trine', angle: 120 },
@@ -77,9 +77,11 @@ export function nearestMajorAspect(angle) {
   }, { ...MAJOR_ASPECTS[0], deviation: Math.abs(angle) });
 }
 
-export function classifyContact(planetOne, planetTwo, deviation) {
-  const oneReaches = deviation <= planetOne.ooi;
-  const twoReaches = deviation <= planetTwo.ooi;
+export function classifyContact(planetOne, planetTwo, deviation, aspect = null) {
+  const oneOoi = effectiveOoi(planetOne, aspect);
+  const twoOoi = effectiveOoi(planetTwo, aspect);
+  const oneReaches = deviation <= oneOoi;
+  const twoReaches = deviation <= twoOoi;
 
   if (oneReaches && twoReaches) {
     return { kind: 'direct', directImpact: true, forcedBy: null };
@@ -93,7 +95,7 @@ export function classifyContact(planetOne, planetTwo, deviation) {
     };
   }
 
-  if (deviation <= planetOne.ooi + planetTwo.ooi) {
+  if (deviation <= oneOoi + twoOoi) {
     return { kind: 'fringe', directImpact: false, forcedBy: null };
   }
 
@@ -104,14 +106,22 @@ export function classifyRelationship(previousPair, currentPair, nextPair) {
   const previous = measurePair(previousPair);
   const current = measurePair(currentPair);
   const next = measurePair(nextPair);
-  const contact = classifyContact(current.planetOne, current.planetTwo, current.aspect.deviation);
-  const applicableOoi = Math.max(current.planetOne.ooi, current.planetTwo.ooi);
+  const contact = classifyContact(
+    current.planetOne, current.planetTwo, current.aspect.deviation, current.aspect,
+  );
+  const applicableOoi = Math.max(
+    effectiveOoi(current.planetOne, current.aspect),
+    effectiveOoi(current.planetTwo, current.aspect),
+  );
   const priorContact = classifyContact(
     previous.planetOne,
     previous.planetTwo,
     previous.aspect.deviation,
+    previous.aspect,
   );
-  const nextContact = classifyContact(next.planetOne, next.planetTwo, next.aspect.deviation);
+  const nextContact = classifyContact(
+    next.planetOne, next.planetTwo, next.aspect.deviation, next.aspect,
+  );
 
   return {
     planetOne: serializeBody(current.planetOne),
@@ -130,6 +140,7 @@ export function inspectRelationship(pair) {
     measured.planetOne,
     measured.planetTwo,
     measured.aspect.deviation,
+    measured.aspect,
   );
 
   return {
@@ -137,9 +148,16 @@ export function inspectRelationship(pair) {
     planetTwo: serializeBody(measured.planetTwo),
     aspect: measured.aspect,
     signedDeviation: measured.angle - measured.aspect.angle,
-    applicableOoi: Math.max(measured.planetOne.ooi, measured.planetTwo.ooi),
+    applicableOoi: Math.max(
+      effectiveOoi(measured.planetOne, measured.aspect),
+      effectiveOoi(measured.planetTwo, measured.aspect),
+    ),
     contact,
   };
+}
+
+function effectiveOoi(body, aspect) {
+  return Number.isFinite(aspect?.ooiLimit) ? Math.min(body.ooi, aspect.ooiLimit) : body.ooi;
 }
 
 function measurePair(pair) {

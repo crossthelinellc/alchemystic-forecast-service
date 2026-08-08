@@ -3,7 +3,9 @@ import test from 'node:test';
 
 import { createForecastService, startOfDayInTimeZone } from './forecast-service.mjs';
 
-async function request(handler, { url = '/api/alchemystic-forecast', method = 'GET', headers = {} } = {}) {
+async function request(handler, {
+  url = '/api/alchemystic-forecast', method = 'GET', headers = {}, body = '',
+} = {}) {
   const response = {
     headers: new Map(),
     status: null,
@@ -15,9 +17,36 @@ async function request(handler, { url = '/api/alchemystic-forecast', method = 'G
     },
     end(chunk = '') { this.body += chunk; },
   };
-  await handler({ url, method, headers }, response);
+  await handler({
+    url, method, headers,
+    async *[Symbol.asyncIterator]() { if (body) yield Buffer.from(body); },
+  }, response);
   return response;
 }
+
+test('serves authenticated Swiss natal calculation without exposing it publicly', async () => {
+  const handler = createForecastService({
+    sourceUrl: 'https://code.example.com/alchemystic-forecast',
+    positionProvider: async () => ({ positions: [] }),
+    loadInterpretations: async () => ({}),
+    natalCalculationToken: 'calculation-secret',
+    natalChartProvider: async ({ at, latitude, longitude }) => ({
+      timestamp: at.toISOString(), latitude, longitude, ephemeris: 'swiss',
+      ascendantLongitude: 12, positions: [],
+    }),
+  });
+  const unauthorized = await request(handler, {
+    url: '/api/alchemystic-natal-chart', method: 'POST', body: '{}',
+  });
+  assert.equal(unauthorized.status, 401);
+  const response = await request(handler, {
+    url: '/api/alchemystic-natal-chart', method: 'POST',
+    headers: { authorization: 'Bearer calculation-secret' },
+    body: JSON.stringify({ at: '1982-06-12T13:49:00.000Z', latitude: 39.29, longitude: -76.61 }),
+  });
+  assert.equal(response.status, 200);
+  assert.equal(JSON.parse(response.body).ephemeris, 'swiss');
+});
 
 test('serves a cached, conditional forecast only to Mystic Rebels storefront origins', async () => {
   let scans = 0;

@@ -38,6 +38,35 @@ export function calculateSwissPositions({ at, binaryPath, ephemerisPath }) {
   return parseSwetestOutput(output, instant);
 }
 
+export function calculateSwissNatalChart({ at, latitude, longitude, binaryPath, ephemerisPath }) {
+  const instant = at instanceof Date ? at : new Date(at);
+  if (Number.isNaN(instant.getTime())) throw new TypeError('A valid UTC birth instant is required.');
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+    throw new RangeError('Birth latitude must be between -90 and 90 degrees.');
+  }
+  if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+    throw new RangeError('Birth longitude must be between -180 and 180 degrees.');
+  }
+  if (!binaryPath) throw new TypeError('The swetest binary path is required.');
+  if (!ephemerisPath) throw new TypeError('The Swiss Ephemeris data path is required.');
+
+  const positions = calculateSwissPositions({ at: instant, binaryPath, ephemerisPath });
+  const houseOutput = execFileSync(
+    binaryPath,
+    buildHouseArguments(instant, longitude, latitude, ephemerisPath),
+    { encoding: 'utf8', maxBuffer: 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const houses = parseSwetestHouses(houseOutput);
+  return {
+    ...positions,
+    ascendantLongitude: houses.ascendantLongitude,
+    midheavenLongitude: houses.midheavenLongitude,
+    wholeSignCusps: houses.wholeSignCusps,
+    location: { latitude, longitude },
+    houseModel: 'alchemystic_whole_sign_earth_contexts',
+  };
+}
+
 export function calculateSwissEclipses({ start, end, binaryPath, ephemerisPath }) {
   const startInstant = start instanceof Date ? start : new Date(start);
   const endInstant = end instanceof Date ? end : new Date(end);
@@ -112,6 +141,27 @@ export function parseSwissEclipseOutput(output, requestedKind) {
   });
 }
 
+export function parseSwetestHouses(output) {
+  if (/\b(error|warning):/i.test(output)) {
+    throw new Error(`Swiss Ephemeris did not produce authoritative house data:\n${output.trim()}`);
+  }
+  if (!/Houses system W \(equal\/ whole sign\)/.test(output)) {
+    throw new Error('Swiss Ephemeris did not confirm Whole-Sign house output.');
+  }
+  const cusps = [...output.matchAll(/^house\s+(\d{1,2})\s+(-?\d+(?:\.\d+)?)/gm)]
+    .map((match) => ({ house: Number(match[1]), longitude: normalizeLongitude(Number(match[2])) }));
+  const ascendant = output.match(/^Ascendant\s+(-?\d+(?:\.\d+)?)/m);
+  const midheaven = output.match(/^MC\s+(-?\d+(?:\.\d+)?)/m);
+  if (cusps.length !== 12 || !ascendant || !midheaven) {
+    throw new Error('Swiss Ephemeris returned incomplete Whole-Sign house data.');
+  }
+  return {
+    wholeSignCusps: cusps.map(({ longitude }) => longitude),
+    ascendantLongitude: normalizeLongitude(Number(ascendant[1])),
+    midheavenLongitude: normalizeLongitude(Number(midheaven[1])),
+  };
+}
+
 function buildArguments(instant, ephemerisPath) {
   const day = instant.getUTCDate();
   const month = instant.getUTCMonth() + 1;
@@ -130,6 +180,20 @@ function buildArguments(instant, ephemerisPath) {
     '-head',
     '-eswe',
     '-speed',
+  ];
+}
+
+function buildHouseArguments(instant, longitude, latitude, ephemerisPath) {
+  const hour = String(instant.getUTCHours()).padStart(2, '0');
+  const minute = String(instant.getUTCMinutes()).padStart(2, '0');
+  const second = String(instant.getUTCSeconds()).padStart(2, '0');
+  return [
+    `-edir${ephemerisPath}`,
+    `-b${instant.getUTCDate()}.${instant.getUTCMonth() + 1}.${instant.getUTCFullYear()}`,
+    `-ut${hour}:${minute}:${second}`,
+    `-house${longitude},${latitude},W`,
+    '-fPls',
+    '-eswe',
   ];
 }
 
