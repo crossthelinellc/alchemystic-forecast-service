@@ -182,9 +182,11 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
       side: toTime(event.timestamp) < toTime(moments.pointOfExactitude) ? 'applying' : 'separating',
     })),
   ].filter(({ contactType }) => contactType).sort((one, two) => one.datetime.localeCompare(two.datetime));
-  const currentPhase = now < toTime(exactitude.datetime)
-    ? 'Activating'
-    : now < toTime(releasing.datetime) ? 'Point of Exactitude' : 'Releasing';
+  const currentPhase = now < toTime(activating.datetime)
+    ? 'Upcoming'
+    : now < toTime(exactitude.datetime)
+      ? 'Activating'
+      : now < toTime(releasing.datetime) ? 'Point of Exactitude' : 'Releasing';
   const currentContactType = contactTimeline.reduce((contactType, entry) => (
     toTime(entry.datetime) <= now ? entry.contactType : contactType
   ), contactTimeline[0]?.contactType || 'True Aspect');

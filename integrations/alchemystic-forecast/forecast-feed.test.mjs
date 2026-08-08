@@ -138,6 +138,23 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.calendar.records.length, 1);
 });
 
+test('labels an arc as Upcoming until its activating instant has actually arrived', () => {
+  const feed = buildForecastFeed({
+    now: '2026-07-30T12:00:00Z',
+    timeZone: 'America/Chicago',
+    forecast: {
+      generatedAt: '2026-07-30T12:00:00Z',
+      window: { start: '2026-07-30T12:00:00Z' },
+      arcs: [completeArc],
+    },
+    interpretations: {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc),
+    },
+  });
+
+  assert.equal(feed.week[0].currentPhase, 'Upcoming');
+});
+
 test('publishes separate Alchemystic and astronomical eclipse classifications', () => {
   const newMoonArc = {
     ...completeArc,

@@ -62,7 +62,7 @@ export function createForecastService({
       },
       eclipses,
       lunarSnapshots,
-      now: focusStart,
+      now: current,
       timeZone,
     });
     return { ...feed, sourceUrl };
