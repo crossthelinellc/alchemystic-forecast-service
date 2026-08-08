@@ -84,6 +84,12 @@ SHA-256 checksums. Build it from the repository root so the forecast integration
 source copied into the runtime image; its Dockerfile-specific ignore rules also keep the rest of
 the private theme out of the build context.
 
+`cloudbuild.yaml` builds and publishes that same Dockerfile when `_IMAGE` is set to the full
+Artifact Registry image name. The deployed container must receive
+`ALCHEMYSTIC_EDITORIAL_PATH=/app/integrations/alchemystic-forecast/editorial.json`,
+`ALCHEMYSTIC_SOURCE_URL=https://github.com/crossthelinellc/alchemystic-forecast-service`, and a
+secret `NATAL_CALCULATION_TOKEN`. Cloud Run supplies `PORT` automatically.
+
 `generate-static-feed.mjs` runs the same production service contract once and writes a Pages-ready
 artifact at `dist/api/alchemystic-forecast.json`. The public source repository runs it on a
 three-hour schedule using a standard GitHub-hosted runner. Store-approved interpretations belong in
