@@ -272,7 +272,7 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
       hasForecast: true,
       eventLabel: lunarContext.eventLabel,
       headline: lunarContext.headline || primary.daily.headline,
-      current: [phaseLead(primaryPhase), lunarContext.current, primary.daily.current].filter(Boolean).join(' '),
+      current: [lunarContext.current, primary.daily.current].filter(Boolean).join(' '),
       watchFor: primary.daily.watchFor,
       alchemy: [primary.daily.alchemy, lunarContext.alchemy].filter(Boolean).join(' '),
       activeCurrentCount: active.length,
@@ -343,17 +343,6 @@ function phaseForDate(record, key) {
   if (record.moments.activating.dateKey === key) return 'Activating';
   if (record.moments.releasing.dateKey === key) return 'Releasing';
   return key < record.moments.exactitude.dateKey ? 'Applying' : 'Separating';
-}
-
-function phaseLead(phase) {
-  const leads = {
-    Activating: 'A new theme is making itself known.',
-    Applying: 'This is building. Notice what keeps asking for your attention.',
-    'Point of Exactitude': 'The emphasis turns here: what has been leading begins to receive.',
-    Separating: 'The shift has happened. What you do in response matters now.',
-    Releasing: 'This is making one last clear statement before it loosens its grip.',
-  };
-  return leads[phase] || '';
 }
 
 function dailyLayerRole(primary, record) {
