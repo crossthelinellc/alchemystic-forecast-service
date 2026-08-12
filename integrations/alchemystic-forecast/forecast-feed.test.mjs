@@ -216,7 +216,7 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
     },
   };
   const feed = buildForecastFeed({
-    now: '2026-08-01T12:00:00Z',
+    now: '2026-08-12T12:00:00Z',
     timeZone: 'America/Chicago',
     forecast: {
       generatedAt: '2026-08-01T12:00:00Z',
@@ -243,13 +243,28 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
         ],
       },
     ],
-    interpretations: {},
+    interpretations: {
+      [occurrenceIdFor(newMoonArc)]: approvedEditorial(newMoonArc, {
+        daily: {
+          headline: 'Moon and Sun need one honest focus.',
+          current: 'The Moon and Sun are concentrating around one assignment.',
+          watchFor: 'Watch for allowing either light to take over the whole story.',
+          alchemy: 'Give both lights an honest purpose.',
+          withBodies: [],
+          whileBodies: [],
+        },
+      }),
+    },
   });
 
   assert.deepEqual(feed.calendar.lunarEvents.map(({ title, phase, astronomicalLabel, relevantNodeKey, dateKey }) => ({ title, phase, astronomicalLabel, relevantNodeKey, dateKey })), [
     { title: 'Forced Northern Solar Eclipse', phase: 'New Moon', astronomicalLabel: 'Total Solar Eclipse', relevantNodeKey: 'mean_north_node', dateKey: '2026-08-12' },
     { title: 'True Southern Lunar Eclipse', phase: 'Full Moon', astronomicalLabel: 'Partial Lunar Eclipse', relevantNodeKey: 'mean_south_node', dateKey: '2026-08-27' },
   ]);
+  assert.equal(feed.dailyForecasts[1].headline, 'Forced Northern Solar Eclipse');
+  assert.match(feed.dailyForecasts[1].current, /This New Moon is a Forced Northern Solar Eclipse/);
+  assert.match(feed.dailyForecasts[1].current, /Mean North Node is highlighted/);
+  assert.match(feed.dailyForecasts[1].alchemy, /Lean into the discomfort slowly/);
 });
 
 test('publishes all five intermediate Sun-Moon aspects as complete Lunar Event arcs', () => {
