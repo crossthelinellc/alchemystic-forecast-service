@@ -63,7 +63,7 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], lu
     .sort((one, two) => one.range.focus.localeCompare(two.range.focus));
   const lunarEvents = serializeLunarEvents(forecast.arcs, eclipses, lunarSnapshots, interpretations, currentTime, timeZone)
     .filter(({ datetime }) => toTime(datetime) >= calendarStart && toTime(datetime) <= calendarEnd);
-  const dailyForecasts = buildDailyForecasts(records, currentTime, timeZone);
+  const dailyForecasts = buildDailyForecasts(records, lunarEvents, currentTime, timeZone);
 
   return {
     schema: 'mystic-rebels.alchemystic-forecast.v1',
@@ -230,7 +230,8 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
   };
 }
 
-function buildDailyForecasts(records, currentTime, timeZone) {
+function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
+  const lunarEventsByRecord = new Map((lunarEvents || []).map((event) => [event.recordId, event]));
   return [-1, 0, 1].map((offset) => {
     const key = dateKey(currentTime + offset * DAY_MS, timeZone);
     const active = records
@@ -255,6 +256,8 @@ function buildDailyForecasts(records, currentTime, timeZone) {
       };
     }
     const primaryPhase = phaseForDate(primary, key);
+    const lunarEvent = lunarEventsByRecord.get(primary.id);
+    const lunarContext = dailyLunarContext(lunarEvent);
     const pills = active.slice(0, 9).map((record, index) => ({
       recordId: record.id,
       label: `${record.planetOne} ${record.aspect} ${record.planetTwo}`,
@@ -267,10 +270,10 @@ function buildDailyForecasts(records, currentTime, timeZone) {
       relativeLabel,
       display: dailyDateDisplay(key, timeZone),
       hasForecast: true,
-      headline: primary.daily.headline,
-      current: `${phaseLead(primaryPhase)} ${primary.daily.current}`,
+      headline: lunarContext.headline || primary.daily.headline,
+      current: [phaseLead(primaryPhase), lunarContext.current, primary.daily.current].filter(Boolean).join(' '),
       watchFor: primary.daily.watchFor,
-      alchemy: primary.daily.alchemy,
+      alchemy: [primary.daily.alchemy, lunarContext.alchemy].filter(Boolean).join(' '),
       activeCurrentCount: active.length,
       dominantTransitId: primary.id,
       dominantPhase: primaryPhase,
@@ -284,6 +287,20 @@ function buildDailyForecasts(records, currentTime, timeZone) {
       },
     };
   });
+}
+
+function dailyLunarContext(event) {
+  if (!event) return { headline: '', current: '', alchemy: '' };
+  const isNamedLunarEvent = ['solar_eclipse', 'lunar_eclipse', 'new_moon', 'full_moon'].includes(event.kind);
+  if (!isNamedLunarEvent) return { headline: '', current: '', alchemy: '' };
+  const highlightedNode = (event.nodeAxis || []).find(({ highlighted }) => highlighted);
+  return {
+    headline: event.title || '',
+    current: highlightedNode
+      ? `This ${event.phase} is a ${event.title}. ${highlightedNode.label} is highlighted: ${highlightedNode.definition}`
+      : event.phase ? `This is a ${event.phase}.` : '',
+    alchemy: highlightedNode?.alchemy || '',
+  };
 }
 
 function dailyPriority(record, key) {
@@ -309,7 +326,7 @@ function phaseLead(phase) {
   const leads = {
     Activating: 'A new current has entered the room.',
     Applying: 'The pressure is building toward a change in direction.',
-    'Point of Exactitude': 'Today is a handoff day: the current changes direction.',
+    'Point of Exactitude': 'This is a handoff day: the current changes direction.',
     Separating: 'The handoff has happened, and the other side of the current is moving through.',
     Releasing: 'This current is making its final push before it lets go.',
   };
