@@ -63,6 +63,7 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], lu
     .sort((one, two) => one.range.focus.localeCompare(two.range.focus));
   const lunarEvents = serializeLunarEvents(forecast.arcs, eclipses, lunarSnapshots, interpretations, currentTime, timeZone)
     .filter(({ datetime }) => toTime(datetime) >= calendarStart && toTime(datetime) <= calendarEnd);
+  const dailyForecasts = buildDailyForecasts(records, currentTime, timeZone);
 
   return {
     schema: 'mystic-rebels.alchemystic-forecast.v1',
@@ -74,6 +75,7 @@ export function buildForecastFeed({ forecast, interpretations, eclipses = [], lu
       && toTime(range.end) >= currentTime
       && toTime(range.start) <= weekEnd
     )),
+    dailyForecasts,
     calendar: {
       range: {
         start: dateKey(calendarStart, timeZone),
@@ -215,6 +217,7 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
     alignment: hasInterpretation ? editorial.alignment : '',
     conditionSummary: hasInterpretation ? editorial.conditionSummary || '' : '',
     interpretationMethod: hasInterpretation ? editorial.method.version : '',
+    daily: hasInterpretation && editorial.daily ? editorial.daily : null,
     articleUrl: hasInterpretation ? editorial.articleUrl || '' : '',
     range: {
       start: activating.datetime,
@@ -225,6 +228,103 @@ function serializeArc(arc, editorial, now, timeZone, occurrenceId = occurrenceId
       endDate: releasing.dateKey,
     },
   };
+}
+
+function buildDailyForecasts(records, currentTime, timeZone) {
+  return [-1, 0, 1].map((offset) => {
+    const key = dateKey(currentTime + offset * DAY_MS, timeZone);
+    const active = records
+      .filter(({ hasInterpretation, daily, range }) => (
+        hasInterpretation && daily && range.startDate <= key && range.endDate >= key
+      ))
+      .sort((one, two) => dailyPriority(two, key) - dailyPriority(one, key));
+    const primary = active[0];
+    const relativeLabel = ['Yesterday', 'Today', 'Tomorrow'][offset + 1];
+    if (!primary) {
+      return {
+        dateKey: key,
+        relativeLabel,
+        display: dailyDateDisplay(key, timeZone),
+        hasForecast: false,
+        headline: 'The current is between interpreted signals.',
+        current: 'The calculated calendar remains available while the next complete daily translation enters range.',
+        watchFor: '',
+        alchemy: '',
+        activeCurrentCount: 0,
+        pills: [],
+      };
+    }
+    const primaryPhase = phaseForDate(primary, key);
+    const pills = active.slice(0, 9).map((record, index) => ({
+      recordId: record.id,
+      label: `${record.planetOne} ${record.aspect} ${record.planetTwo}`,
+      glyphs: `${record.planetOneGlyph} ${record.aspectGlyph} ${record.planetTwoGlyph}`,
+      phase: phaseForDate(record, key),
+      role: index === 0 ? 'dominant' : dailyLayerRole(primary, record),
+    }));
+    return {
+      dateKey: key,
+      relativeLabel,
+      display: dailyDateDisplay(key, timeZone),
+      hasForecast: true,
+      headline: primary.daily.headline,
+      current: `${phaseLead(primaryPhase)} ${primary.daily.current}`,
+      watchFor: primary.daily.watchFor,
+      alchemy: primary.daily.alchemy,
+      activeCurrentCount: active.length,
+      dominantTransitId: primary.id,
+      dominantPhase: primaryPhase,
+      pills,
+      full: {
+        current: primary.interpretation,
+        alchemy: primary.alignment,
+        mainCharacters: primary.conditionSummary,
+        with: pills.filter(({ role }) => role === 'with').map(({ recordId }) => recordId),
+        while: pills.filter(({ role }) => role === 'while').map(({ recordId }) => recordId),
+      },
+    };
+  });
+}
+
+function dailyPriority(record, key) {
+  let score = 10;
+  if (record.moments.exactitude.dateKey === key) score += 100;
+  else if (record.moments.activating.dateKey === key) score += 80;
+  else if (record.contactTimeline.some(({ dateKey: shiftDate, fromContact }) => shiftDate === key && fromContact)) score += 70;
+  else if (record.moments.releasing.dateKey === key) score += 60;
+  const bodies = new Set([record.planetOneKey, record.planetTwoKey]);
+  if (bodies.has('moon') && !bodies.has('sun')) score -= 40;
+  if (bodies.has('sun') && bodies.has('moon')) score += 25;
+  return score;
+}
+
+function phaseForDate(record, key) {
+  if (record.moments.exactitude.dateKey === key) return 'Point of Exactitude';
+  if (record.moments.activating.dateKey === key) return 'Activating';
+  if (record.moments.releasing.dateKey === key) return 'Releasing';
+  return key < record.moments.exactitude.dateKey ? 'Applying' : 'Separating';
+}
+
+function phaseLead(phase) {
+  const leads = {
+    Activating: 'A new current has entered the room.',
+    Applying: 'The pressure is building toward a change in direction.',
+    'Point of Exactitude': 'Today is a handoff day: the current changes direction.',
+    Separating: 'The handoff has happened, and the other side of the current is moving through.',
+    Releasing: 'This current is making its final push before it lets go.',
+  };
+  return leads[phase] || '';
+}
+
+function dailyLayerRole(primary, record) {
+  const focus = new Set([primary.planetOneKey, primary.planetTwoKey, ...(primary.daily.withBodies || [])]);
+  return focus.has(record.planetOneKey) || focus.has(record.planetTwoKey) ? 'with' : 'while';
+}
+
+function dailyDateDisplay(key, timeZone) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone, weekday: 'long', month: 'long', day: 'numeric',
+  }).format(new Date(`${key}T12:00:00Z`));
 }
 
 export function hasCompleteInterpretationMethod(arc, method, occurrenceId = occurrenceIdFor(arc)) {

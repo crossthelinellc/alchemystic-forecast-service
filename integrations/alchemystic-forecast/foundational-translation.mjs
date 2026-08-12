@@ -52,6 +52,21 @@ const THROUGH_POINT_THEMES = Object.freeze({
   pisces: 'the unseen, imagination, dreams, uncertainty, compassion, and release',
 });
 
+const DAILY_THROUGH_POINTS = Object.freeze({
+  aries: 'direct action and immediate effort',
+  taurus: 'what is valuable, workable, and worth keeping',
+  gemini: 'the words, choices, and information in motion',
+  cancer: 'feeling, memory, needs, and safety',
+  leo: 'purpose, visibility, and creative presence',
+  virgo: 'scrutiny, details, function, and efficiency',
+  libra: 'relationship, exchange, fairness, and cooperation',
+  scorpio: 'what is hidden, consequential, and changing underneath',
+  sagittarius: 'belief, possibility, learning, and the larger view',
+  capricorn: 'limits, responsibility, endurance, and completion',
+  aquarius: 'disruption, objective insight, and improvement',
+  pisces: 'what cannot yet be clearly seen or contained',
+});
+
 export async function buildFoundationalTranslations({ forecast, positionProvider }) {
   if (!Array.isArray(forecast?.arcs)) throw new TypeError('A scanned universal forecast is required.');
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
@@ -98,6 +113,7 @@ export function foundationalTranslationForDossier(dossier) {
     tier: 'foundational',
     interpretation,
     alignment,
+    daily: dailyTranslationForDossier(dossier, alignment),
     conditionSummary,
     articleUrl: '',
     method: {
@@ -112,6 +128,71 @@ export function foundationalTranslationForDossier(dossier) {
       },
     },
   };
+}
+
+function dailyTranslationForDossier(dossier, alignment) {
+  const { arc } = dossier;
+  const exactitude = dossier.phases.pointOfExactitude;
+  const one = exactitude.planetOne;
+  const two = exactitude.planetTwo;
+  const oneName = requiredLabel(BODY_LABELS, arc.planetOne);
+  const twoName = requiredLabel(BODY_LABELS, arc.planetTwo);
+  const oneCore = lowerFirst(requiredVocabulary(BODY_VOCABULARY, arc.planetOne, 'body').core);
+  const twoCore = lowerFirst(requiredVocabulary(BODY_VOCABULARY, arc.planetTwo, 'body').core);
+  const oneThrough = requiredLabel(DAILY_THROUGH_POINTS, one.throughPoint.sign);
+  const twoThrough = requiredLabel(DAILY_THROUGH_POINTS, two.throughPoint.sign);
+  const language = dailyAspectLanguage(arc.aspect, { oneName, twoName, oneCore, twoCore });
+
+  return {
+    headline: language.headline,
+    current: `${oneName} is carrying ${oneCore} through ${oneThrough}, while ${twoName} is carrying ${twoCore} through ${twoThrough}. ${language.current}`,
+    watchFor: language.watchFor,
+    alchemy: alignment,
+    withBodies: unique((exactitude.thematicLayers?.with || []).map(({ body }) => body)),
+    whileBodies: unique((exactitude.thematicLayers?.while || []).map(({ body }) => body)),
+  };
+}
+
+function dailyAspectLanguage(aspectKey, names) {
+  const { oneName, twoName, oneCore, twoCore } = names;
+  const language = {
+    conjunction: {
+      headline: `${oneName} and ${twoName} need one honest focus.`,
+      current: `Their conditions are concentrating around one shared assignment. The work is to let ${oneCore} and ${twoCore} occupy the same focus without allowing either one to disappear inside the other.`,
+      watchFor: `Watch for becoming so concentrated on one part of the situation that ${oneName} or ${twoName} quietly takes over the whole story.`,
+    },
+    semi_sextile: {
+      headline: `${oneName} needs something from ${twoName} before it can move cleanly.`,
+      current: `${oneName} wants to activate, but ${twoName} holds a requirement that has to be understood first. What looks like hesitation may actually be missing information about what the situation needs.`,
+      watchFor: `Watch for pushing ${oneCore} forward before the need carried by ${twoCore} has been named.`,
+    },
+    sextile: {
+      headline: `${oneName} and ${twoName} can cooperate—if you participate.`,
+      current: `${oneCore} and ${twoCore} can work in tandem without losing their separate functions. The opening is real, but it does not organize or use itself.`,
+      watchFor: 'Watch for mistaking available cooperation for a finished result. An opportunity still needs a deliberate exchange.',
+    },
+    square: {
+      headline: `${oneName} and ${twoName} both need room.`,
+      current: `${oneName} may be tempted to treat ${twoName} as the obstruction, even though both conditions are carrying legitimate needs. The pressure is asking for synchronization, not a winner.`,
+      watchFor: `Watch for using ${oneCore} to overpower, correct, or dismiss what ${twoCore} is trying to protect.`,
+    },
+    trine: {
+      headline: `${oneName} is flowing straight into ${twoName}. Give it a direction.`,
+      current: `${oneCore} is moving into ${twoCore} without an inherent interruption. That can feel easy or inevitable, but uninterrupted momentum still needs a conscious destination.`,
+      watchFor: 'Watch for letting momentum choose the outcome simply because nothing immediately stops it. Ease and usefulness are not the same thing.',
+    },
+    quincunx: {
+      headline: `${oneName} and ${twoName} need different rooms, not a forced compromise.`,
+      current: `${oneCore} can lend something useful to ${twoCore}, but their conditions cannot occupy the same container. Separation is what lets both remain functional.`,
+      watchFor: `Watch for forcing ${oneName} and ${twoName} into one answer just to make the tension disappear.`,
+    },
+    opposition: {
+      headline: `${oneName} and ${twoName} are showing both ends of the truth.`,
+      current: `${oneCore} and ${twoCore} occupy opposing but equally real positions. Their distance reveals what each side cannot see alone; balance comes through exchange, not fusion.`,
+      watchFor: `Watch for choosing one end of the situation and pretending the counterpoint carried by ${twoName} is no longer relevant.`,
+    },
+  };
+  return requiredLabel(language, aspectKey);
 }
 
 function conditionReading(condition, counterpart) {

@@ -138,6 +138,43 @@ test('presents a complete Aspect Arc without inventing editorial interpretation'
   assert.equal(feed.calendar.records.length, 1);
 });
 
+test('builds Yesterday, Today, and Tomorrow from interpreted active currents', () => {
+  const feed = buildForecastFeed({
+    now: '2026-08-02T16:00:00Z',
+    timeZone: 'America/Chicago',
+    forecast: {
+      generatedAt: '2026-08-02T16:00:00Z',
+      window: { start: '2026-08-02T16:00:00Z' },
+      arcs: [completeArc],
+    },
+    interpretations: {
+      [occurrenceIdFor(completeArc)]: approvedEditorial(completeArc, {
+        daily: {
+          headline: 'Pallas and Mercury both need room.',
+          current: 'Strategy and the message are pressing on one another.',
+          watchFor: 'Watch for making either condition the enemy.',
+          alchemy: 'Give both conditions a workable role.',
+          withBodies: ['mars'],
+          whileBodies: [],
+        },
+      }),
+    },
+  });
+
+  assert.deepEqual(feed.dailyForecasts.map(({ relativeLabel, dateKey }) => ({ relativeLabel, dateKey })), [
+    { relativeLabel: 'Yesterday', dateKey: '2026-08-01' },
+    { relativeLabel: 'Today', dateKey: '2026-08-02' },
+    { relativeLabel: 'Tomorrow', dateKey: '2026-08-03' },
+  ]);
+  assert.equal(feed.dailyForecasts[1].hasForecast, true);
+  assert.equal(feed.dailyForecasts[1].dominantPhase, 'Point of Exactitude');
+  assert.match(feed.dailyForecasts[1].current, /handoff day/);
+  assert.equal(feed.dailyForecasts[1].headline, 'Pallas and Mercury both need room.');
+  assert.equal(feed.dailyForecasts[1].pills[0].role, 'dominant');
+  assert.equal(feed.dailyForecasts[1].pills[0].recordId, feed.calendar.records[0].id);
+  assert.equal(feed.dailyForecasts[1].full.alchemy, 'Make sure the plan and the words solve the same problem.');
+});
+
 test('labels an arc as Upcoming until its activating instant has actually arrived', () => {
   const feed = buildForecastFeed({
     now: '2026-07-30T12:00:00Z',
