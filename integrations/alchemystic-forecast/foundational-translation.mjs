@@ -179,18 +179,18 @@ function dailyTranslationForDossier(dossier) {
 }
 
 function dailyAspectLanguage(aspectKey, names) {
-  const { oneName, twoName, oneLife, twoLife } = names;
+  const { oneLife, twoLife } = names;
   const language = {
     conjunction: {
       headline: 'Everything is converging on one honest priority.',
       current: 'Two needs are asking for the same attention. The choice is not which one matters; it is what they are meant to accomplish together.',
-      watchFor: `Tunnel vision. ${oneName} or ${twoName} can quietly take over the whole story.`,
+      watchFor: 'Tunnel vision. One need can quietly take over the whole story.',
       alchemy: `Choose one clear priority. Let ${oneLife} and ${twoLife} serve it together without allowing either one to disappear.`,
     },
     semi_sextile: {
       headline: 'Something small needs to be named before this can move.',
       current: 'What looks like hesitation may actually be a missing requirement. The next step gets cleaner once the quiet need underneath it is acknowledged.',
-      watchFor: `Pushing ${oneName} forward before hearing what ${twoName} needs.`,
+      watchFor: 'Moving too quickly before the quiet requirement underneath the situation has been heard.',
       alchemy: `Name what ${twoLife} needs first. Then let ${oneLife} move only what can genuinely work with it.`,
     },
     sextile: {
@@ -202,25 +202,25 @@ function dailyAspectLanguage(aspectKey, names) {
     square: {
       headline: 'Two real needs are competing for the same room.',
       current: 'The pressure is not asking you to choose a winner. It is showing where two legitimate needs have not yet been given a way to function at the same time.',
-      watchFor: `Using ${oneName} to overpower, correct, or dismiss what ${twoName} is trying to protect.`,
+      watchFor: 'Trying to overpower, correct, or dismiss one need so the other can win.',
       alchemy: `Stop making one need defeat the other. Build a response that gives both ${oneLife} and ${twoLife} a workable role.`,
     },
     trine: {
       headline: 'Momentum is here. Direction is the question.',
       current: 'Something is moving with very little resistance. That can feel easy or inevitable, but ease does not decide whether the destination is actually useful.',
       watchFor: 'Letting momentum choose the outcome simply because nothing immediately stops it.',
-      alchemy: `Give the movement a destination. Aim ${oneLife} toward a result that ${twoLife} can make useful.`,
+      alchemy: 'Give the movement a destination. Decide what useful result it should create before momentum chooses for you.',
     },
     quincunx: {
       headline: 'Not everything belongs in the same room.',
       current: 'These needs can help one another, but they cannot do the same job or live inside the same answer. Separation is what keeps both of them honest and functional.',
-      watchFor: `Forcing ${oneName} and ${twoName} into one answer just to make the tension disappear.`,
+      watchFor: 'Forcing two different needs into one answer just to make the tension disappear.',
       alchemy: `Give ${oneLife} and ${twoLife} separate containers. Let them exchange what is useful without demanding a merger.`,
     },
     opposition: {
       headline: 'Both sides are telling the truth.',
       current: 'The distance between two real positions is revealing what neither side can see alone. Balance comes through exchange—not by pretending the contrast is gone.',
-      watchFor: `Choosing one side and pretending the counterpoint carried by ${twoName} no longer matters.`,
+      watchFor: 'Choosing one side and pretending the counterpoint no longer matters.',
       alchemy: `Keep ${oneLife} and ${twoLife} visible. Let each side answer the blind spot in the other without collapsing the difference.`,
     },
   };

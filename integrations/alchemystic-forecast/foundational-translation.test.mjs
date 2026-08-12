@@ -57,7 +57,7 @@ test('builds a complete foundational translation from both assessed planetary co
   assert.match(translation.daily.current, /Pattern recognition and the strategy/);
   assert.match(translation.daily.current, /message, the decision/);
   assert.doesNotMatch(translation.daily.current, /is carrying|full condition|active With|OOI/);
-  assert.match(translation.daily.watchFor, /overpower, correct, or dismiss/);
+  assert.equal(translation.daily.watchFor, 'Trying to overpower, correct, or dismiss one need so the other can win.');
   assert.match(translation.daily.alchemy, /Build a response/);
   assert.doesNotMatch(translation.daily.alchemy, /through|condition|Planet One|Planet Two/);
   assert.equal(translation.daily.cardCurrent, 'The pressure is not asking you to choose a winner. It is showing where two legitimate needs have not yet been given a way to function at the same time.');
