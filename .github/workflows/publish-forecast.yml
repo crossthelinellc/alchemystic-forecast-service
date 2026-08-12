@@ -86,3 +86,50 @@ jobs:
       - name: Deploy forecast feed
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify-failure:
+    if: ${{ always() && (needs.build.result == 'failure' || needs.deploy.result == 'failure') }}
+    needs: [build, deploy]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open or update publication failure issue
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = 'Daily forecast publication failed';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              `The forecast publication workflow failed on **${context.eventName}**.`,
+              '',
+              `- Build: **${{ needs.build.result }}**`,
+              `- Deploy: **${{ needs.deploy.result }}**`,
+              `- Attempt: **${context.runAttempt}**`,
+              `- [Open the failed workflow run](${runUrl})`,
+              '',
+              'Inspect the failed step, correct the source or workflow, then use **Re-run failed jobs**. Confirm the public JSON feed has a fresh `generatedAt` value after recovery.',
+            ].join('\n');
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+            const existing = issues.find((issue) => !issue.pull_request && issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+            }
