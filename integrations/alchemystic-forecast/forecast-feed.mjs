@@ -336,45 +336,45 @@ function eclipseStageTranslation(orientation, phase) {
     Northern: {
       Activating: {
         headline: 'The unfamiliar path is beginning to pull.',
-        current: 'Expect an unfamiliar option to ask for attention. It may feel awkward because it has not been practiced yet—not because it is wrong.',
+        current: 'An unfamiliar option can begin showing up through choices, conversations, or circumstances that ask for a different response. The awkwardness comes from lack of practice—not proof that the direction is wrong.',
       },
       Applying: {
         headline: 'The unfamiliar choice is gaining momentum.',
-        current: 'What has not been tried yet may feel increasingly difficult to ignore. Curiosity is more useful than demanding certainty before taking the first step.',
+        current: 'Situations can keep returning you to the option that has not been tried yet. Curiosity will be more useful than demanding certainty before allowing yourself one honest step.',
       },
       'Point of Exactitude': {
         headline: 'The unfamiliar path is asking for action.',
-        current: 'The pull toward a less familiar response is strongest now. Discomfort is information here—not proof that the path is wrong.',
+        current: 'The pressure toward a less familiar response is strongest now. You do not need to feel completely comfortable before responding; discomfort is information here, not proof that the path is wrong.',
       },
       Separating: {
         headline: 'The new direction needs a real response.',
-        current: 'The opening has already shown itself. Expect the tension to move from noticing the unfamiliar option to deciding what you will actually do with it.',
+        current: 'The opening has already shown itself. Now the tension moves from recognizing the unfamiliar option to deciding how much room you are actually willing to give it.',
       },
       Releasing: {
         headline: 'Choose what continues from here.',
-        current: 'The pressure is beginning to ease, but the unfamiliar option still needs a deliberate next step if it is going to become part of your life.',
+        current: 'The pressure is beginning to ease. What happens next depends on whether the unfamiliar option receives a deliberate place in your choices or is allowed to disappear once the urgency passes.',
       },
     },
     Southern: {
       Activating: {
         headline: 'The familiar response is getting louder.',
-        current: 'Expect an old response to become harder to ignore. Notice what it protects before deciding whether it still belongs in the story.',
+        current: 'Old dynamics can surface through reactions, choices, or situations that feel immediately familiar. Before repeating the usual response, ask what it protects—and whether that protection is still needed.',
       },
       Applying: {
         headline: 'The pull toward the familiar is building.',
-        current: 'What feels known or safe may become especially convincing. Familiarity can reveal what still has value, but it does not automatically make the response useful.',
+        current: 'Situations can make the known or safer response feel increasingly convincing. Familiarity can reveal what still has value, but it does not automatically make that response useful now.',
       },
       'Point of Exactitude': {
         headline: 'The familiar choice is at a turning point.',
-        current: 'The pull toward the familiar is strongest now. Keep what still has value, but do not repeat the rest simply because you already know how.',
+        current: 'The pressure to fall back on what you already know is strongest now. Keep the part that genuinely supports you, but do not let familiarity make the entire decision.',
       },
       Separating: {
         headline: 'The old response is showing its consequences.',
-        current: 'The strongest pressure has passed, making it easier to see what the familiar response preserved and what it kept from changing.',
+        current: 'Reactions and consequences can make the old pattern easier to recognize now. Look at what the familiar response preserved—and what it prevented from changing.',
       },
       Releasing: {
         headline: 'The old pattern is making its final pass.',
-        current: 'Expect one last echo of the familiar response before the pressure loosens. Treat it as confirmation of what you have learned—not as a command to repeat it.',
+        current: 'One last echo of the familiar response can appear before the pressure loosens. Treat it as confirmation of what has been learned, not as a command to repeat the pattern.',
       },
     },
   };

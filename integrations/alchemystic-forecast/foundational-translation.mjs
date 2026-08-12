@@ -164,8 +164,8 @@ function dailyTranslationForDossier(dossier) {
   const twoThrough = requiredLabel(DAILY_THROUGH_POINTS, two.throughPoint.sign);
   const language = dailyAspectLanguage(arc.aspect, { oneName, twoName, oneLife, twoLife });
   const setting = one.throughPoint.sign === two.throughPoint.sign
-    ? `Both ${oneLife} and ${twoLife} are moving through ${oneThrough}.`
-    : `${capitalize(oneLife)} is moving through ${oneThrough}. At the same time, ${twoLife} is moving through ${twoThrough}.`;
+    ? `The shared pressure is concentrating ${oneLife} and ${twoLife} through ${oneThrough}.`
+    : `Conditions are pressing on ${oneLife} through ${oneThrough}. At the same time, ${twoLife} is being worked out through ${twoThrough}.`;
 
   return {
     headline: language.headline,
@@ -183,43 +183,43 @@ function dailyAspectLanguage(aspectKey, names) {
   const language = {
     conjunction: {
       headline: 'Everything is converging on one honest priority.',
-      current: 'Two needs are asking for the same attention. The choice is not which one matters; it is what they are meant to accomplish together.',
+      current: 'Different pressures can arrive at once and pull your attention toward the same center. The choice is not which need deserves to exist; it is what they are being asked to accomplish together.',
       watchFor: 'Tunnel vision. One need can quietly take over the whole story.',
       alchemy: `Choose one clear priority. Let ${oneLife} and ${twoLife} serve it together without allowing either one to disappear.`,
     },
     semi_sextile: {
       headline: 'Something small needs to be named before this can move.',
-      current: 'What looks like hesitation may actually be a missing requirement. The next step gets cleaner once the quiet need underneath it is acknowledged.',
+      current: 'A small snag, hesitation, or missing detail can slow the situation down. The next step gets cleaner once the quieter requirement underneath it is acknowledged.',
       watchFor: 'Moving too quickly before the quiet requirement underneath the situation has been heard.',
       alchemy: `Name what ${twoLife} needs first. Then let ${oneLife} move only what can genuinely work with it.`,
     },
     sextile: {
       headline: 'The opening is real—but it needs your participation.',
-      current: 'Two parts of the situation can help one another without losing their separate jobs. Cooperation is available, but it will not organize itself.',
+      current: 'A useful opening can appear through a conversation, resource, or well-timed connection. The conditions support cooperation, but someone still has to give that opening a purpose.',
       watchFor: 'Treating an available opportunity like a finished result.',
       alchemy: `Create one deliberate exchange between ${oneLife} and ${twoLife}. Give the opening something useful to do.`,
     },
     square: {
       headline: 'Two real needs are competing for the same room.',
-      current: 'The pressure is not asking you to choose a winner. It is showing where two legitimate needs have not yet been given a way to function at the same time.',
+      current: 'Competing demands can make a situation feel as though one need has to lose. The pressure is revealing where two legitimate needs have not yet been given a way to function at the same time.',
       watchFor: 'Trying to overpower, correct, or dismiss one need so the other can win.',
       alchemy: `Stop making one need defeat the other. Build a response that gives both ${oneLife} and ${twoLife} a workable role.`,
     },
     trine: {
       headline: 'Momentum is here. Direction is the question.',
-      current: 'Something is moving with very little resistance. That can feel easy or inevitable, but ease does not decide whether the destination is actually useful.',
+      current: 'Plans, conversations, or circumstances can move with less resistance than expected. That ease is useful, but it can also carry you farther than intended unless you choose the destination.',
       watchFor: 'Letting momentum choose the outcome simply because nothing immediately stops it.',
       alchemy: 'Give the movement a destination. Decide what useful result it should create before momentum chooses for you.',
     },
     quincunx: {
       headline: 'Not everything belongs in the same room.',
-      current: 'These needs can help one another, but they cannot do the same job or live inside the same answer. Separation is what keeps both of them honest and functional.',
+      current: 'A situation can keep resisting one neat answer because the needs involved do not belong in the same role. They can exchange something useful without being forced to become the same thing.',
       watchFor: 'Forcing two different needs into one answer just to make the tension disappear.',
       alchemy: `Give ${oneLife} and ${twoLife} separate containers. Let them exchange what is useful without demanding a merger.`,
     },
     opposition: {
       headline: 'Both sides are telling the truth.',
-      current: 'The distance between two real positions is revealing what neither side can see alone. Balance comes through exchange—not by pretending the contrast is gone.',
+      current: 'Another person, a competing option, or a visible consequence can reveal the side of a situation that was easiest to miss. Balance comes through exchange—not by pretending the contrast is gone.',
       watchFor: 'Choosing one side and pretending the counterpoint no longer matters.',
       alchemy: `Keep ${oneLife} and ${twoLife} visible. Let each side answer the blind spot in the other without collapsing the difference.`,
     },

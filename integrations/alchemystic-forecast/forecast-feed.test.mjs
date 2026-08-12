@@ -266,10 +266,10 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
   ]);
   assert.equal(feed.dailyForecasts[1].eventLabel, 'Forced Northern Solar Eclipse');
   assert.equal(feed.dailyForecasts[1].headline, 'The unfamiliar path is asking for action.');
-  assert.match(feed.dailyForecasts[1].current, /Discomfort is information/);
+  assert.match(feed.dailyForecasts[1].current, /discomfort is information/i);
   assert.doesNotMatch(feed.dailyForecasts[1].current, /Mean North Node is highlighted/);
   assert.match(feed.dailyForecasts[1].alchemy, /one small step toward the unfamiliar/);
-  assert.match(feed.dailyForecasts[1].card.current, /Discomfort is information/);
+  assert.match(feed.dailyForecasts[1].card.current, /discomfort is information/i);
   assert.doesNotMatch(feed.dailyForecasts[1].card.current, /emphasis turns here/);
   assert.doesNotMatch(feed.dailyForecasts[1].current, /new theme|emphasis turns|building|shift has happened|last clear statement/i);
   assert.equal(new Set(feed.dailyForecasts.map(({ headline }) => headline)).size, 3);
