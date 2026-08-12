@@ -168,7 +168,8 @@ test('builds Yesterday, Today, and Tomorrow from interpreted active currents', (
   ]);
   assert.equal(feed.dailyForecasts[1].hasForecast, true);
   assert.equal(feed.dailyForecasts[1].dominantPhase, 'Point of Exactitude');
-  assert.match(feed.dailyForecasts[1].current, /emphasis turns here/);
+  assert.equal(feed.dailyForecasts[1].current, 'Strategy and the message are pressing on one another.');
+  assert.doesNotMatch(feed.dailyForecasts[1].current, /new theme|emphasis turns|building|shift has happened|last clear statement/i);
   assert.equal(feed.dailyForecasts[1].headline, 'Pallas and Mercury both need room.');
   assert.equal(feed.dailyForecasts[1].pills[0].role, 'dominant');
   assert.equal(feed.dailyForecasts[1].pills[0].recordId, feed.calendar.records[0].id);
@@ -270,6 +271,7 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
   assert.match(feed.dailyForecasts[1].alchemy, /one small step toward the unfamiliar/);
   assert.match(feed.dailyForecasts[1].card.current, /Discomfort is information/);
   assert.doesNotMatch(feed.dailyForecasts[1].card.current, /emphasis turns here/);
+  assert.doesNotMatch(feed.dailyForecasts[1].current, /new theme|emphasis turns|building|shift has happened|last clear statement/i);
 });
 
 test('publishes all five intermediate Sun-Moon aspects as complete Lunar Event arcs', () => {
