@@ -54,13 +54,13 @@ test('builds a complete foundational translation from both assessed planetary co
   assert.match(translation.conditionSummary, /active channels/);
   assert.match(translation.conditionSummary, /connected With layer/);
   assert.equal(translation.daily.headline, 'Two real needs are competing for the same room.');
-  assert.match(translation.daily.current, /Pattern recognition and the strategy/);
+  assert.match(translation.daily.current, /pattern recognition and the strategy/);
   assert.match(translation.daily.current, /message, the decision/);
   assert.doesNotMatch(translation.daily.current, /is carrying|full condition|active With|OOI/);
   assert.equal(translation.daily.watchFor, 'Trying to overpower, correct, or dismiss one need so the other can win.');
   assert.match(translation.daily.alchemy, /Build a response/);
   assert.doesNotMatch(translation.daily.alchemy, /through|condition|Planet One|Planet Two/);
-  assert.equal(translation.daily.cardCurrent, 'The pressure is not asking you to choose a winner. It is showing where two legitimate needs have not yet been given a way to function at the same time.');
+  assert.equal(translation.daily.cardCurrent, 'Competing demands can make a situation feel as though one need has to lose. The pressure is revealing where two legitimate needs have not yet been given a way to function at the same time.');
   assert.ok(Array.isArray(translation.daily.withBodies));
   assert.ok(Array.isArray(translation.daily.whileBodies));
   assert.equal(hasCompleteInterpretationMethod(arc, translation.method, dossier.id), true);
@@ -114,6 +114,7 @@ test('generates complete translations for ordinary Moon transits and Sun-Moon Lu
 test('translates every configured aspect into practical use rather than technical mechanics', async () => {
   const dossier = await buildAspectArcDossier({ arc, positionProvider });
   const aspectKeys = ['conjunction', 'semi_sextile', 'sextile', 'square', 'trine', 'quincunx', 'opposition'];
+  const dailyOpenings = [];
 
   for (const aspectKey of aspectKeys) {
     const translation = foundationalTranslationForDossier({
@@ -123,5 +124,9 @@ test('translates every configured aspect into practical use rather than technica
     assert.match(translation.alignment, /Pallas’s creative-strategic pattern recognition/);
     assert.match(translation.alignment, /Mercury’s mind/);
     assert.doesNotMatch(translation.alignment, /Planet One|Planet Two|Point of Exactitude|Aspect Arc|OOI|True Aspect|Forced Aspect|directional handoff/);
+    assert.doesNotMatch(translation.daily.cardCurrent, /^what you may notice/i);
+    assert.match(translation.daily.cardCurrent, /pressure|situation|conversation|circumstances|option|detail|opening|demands|needs/i);
+    dailyOpenings.push(translation.daily.cardCurrent.split(/\s+/).slice(0, 3).join(' '));
   }
+  assert.equal(new Set(dailyOpenings).size, aspectKeys.length);
 });

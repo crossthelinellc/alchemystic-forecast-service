@@ -51,6 +51,13 @@ rolling `calendar` collection retains calculated arcs whether or not editorial c
 Unapproved records are clearly marked as calculated timing only instead of receiving invented
 forecast language.
 
+The feed's `dailyForecasts` translation describes the shared pressure or influence creating
+situations and conditions for everyone, while allowing each person to meet that field differently.
+It may speak directly to recognizable choices, reactions, conversations, and practical or emotional
+pressure, but it must not imply natal knowledge or an unsupported life area. Openings vary according
+to the calculated bodies, ordered aspect, and phase; no stock phrase such as “what you may notice”
+is used as a universal template.
+
 The forecast keeps Moon aspects to every other body in **Moon Transits** and reserves
 **Lunar Events** for the complete seven-aspect Sun–Moon cycle: Conjunction/New Moon,
 Semi-sextile, Sextile, Square, Trine, Quincunx, and Opposition/Full Moon. Each is a complete
