@@ -53,11 +53,13 @@ test('builds a complete foundational translation from both assessed planetary co
   assert.doesNotMatch(translation.alignment, /Planet One|Planet Two|Point of Exactitude|Aspect Arc|OOI|True Aspect|Forced Aspect|directional handoff/);
   assert.match(translation.conditionSummary, /active channels/);
   assert.match(translation.conditionSummary, /connected With layer/);
-  assert.match(translation.daily.headline, /Pallas and Mercury both need room/);
-  assert.match(translation.daily.current, /Pallas is carrying/);
-  assert.match(translation.daily.current, /Mercury is carrying/);
-  assert.match(translation.daily.watchFor, /Watch for/);
-  assert.equal(translation.daily.alchemy, translation.alignment);
+  assert.equal(translation.daily.headline, 'Two real needs are competing for the same room.');
+  assert.match(translation.daily.current, /pattern you can see/);
+  assert.match(translation.daily.current, /message, the decision/);
+  assert.doesNotMatch(translation.daily.current, /is carrying|full condition|active With|OOI/);
+  assert.match(translation.daily.watchFor, /overpower, correct, or dismiss/);
+  assert.match(translation.daily.alchemy, /Build a response/);
+  assert.doesNotMatch(translation.daily.alchemy, /through|condition|Planet One|Planet Two/);
   assert.ok(Array.isArray(translation.daily.withBodies));
   assert.ok(Array.isArray(translation.daily.whileBodies));
   assert.equal(hasCompleteInterpretationMethod(arc, translation.method, dossier.id), true);

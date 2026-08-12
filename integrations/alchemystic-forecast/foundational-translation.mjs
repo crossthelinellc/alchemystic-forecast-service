@@ -67,6 +67,27 @@ const DAILY_THROUGH_POINTS = Object.freeze({
   pisces: 'what cannot yet be clearly seen or contained',
 });
 
+const DAILY_BODY_LANGUAGE = Object.freeze({
+  sun: 'your sense of purpose and aliveness',
+  moon: 'your need for safety and emotional steadiness',
+  mercury: 'the message, the decision, and what needs to make sense',
+  venus: 'what you value, desire, and want to keep',
+  mars: 'the move you are ready to make',
+  jupiter: 'what wants more room to grow',
+  saturn: 'the boundary, responsibility, or limit that has to hold',
+  uranus: 'the change that refuses to stay contained',
+  neptune: 'what you can feel before you can fully explain it',
+  pluto: 'what can no longer remain buried',
+  chiron: 'the tender place asking for a wiser response',
+  vesta: 'the purpose that deserves your devotion',
+  juno: 'the agreement you are willing to live inside',
+  ceres: 'what needs care, sustenance, and enough support to continue',
+  pallas: 'the pattern you can see and the strategy it suggests',
+  mean_black_moon_lilith: 'the truth or desire that will not keep asking permission',
+  mean_north_node: 'the unfamiliar direction asking to be developed',
+  mean_south_node: 'the familiar pattern that comes easily but cannot lead forever',
+});
+
 export async function buildFoundationalTranslations({ forecast, positionProvider }) {
   if (!Array.isArray(forecast?.arcs)) throw new TypeError('A scanned universal forecast is required.');
   if (typeof positionProvider !== 'function') throw new TypeError('A position provider is required.');
@@ -113,7 +134,7 @@ export function foundationalTranslationForDossier(dossier) {
     tier: 'foundational',
     interpretation,
     alignment,
-    daily: dailyTranslationForDossier(dossier, alignment),
+    daily: dailyTranslationForDossier(dossier),
     conditionSummary,
     articleUrl: '',
     method: {
@@ -130,66 +151,76 @@ export function foundationalTranslationForDossier(dossier) {
   };
 }
 
-function dailyTranslationForDossier(dossier, alignment) {
+function dailyTranslationForDossier(dossier) {
   const { arc } = dossier;
   const exactitude = dossier.phases.pointOfExactitude;
   const one = exactitude.planetOne;
   const two = exactitude.planetTwo;
   const oneName = requiredLabel(BODY_LABELS, arc.planetOne);
   const twoName = requiredLabel(BODY_LABELS, arc.planetTwo);
-  const oneCore = lowerFirst(requiredVocabulary(BODY_VOCABULARY, arc.planetOne, 'body').core);
-  const twoCore = lowerFirst(requiredVocabulary(BODY_VOCABULARY, arc.planetTwo, 'body').core);
+  const oneLife = requiredLabel(DAILY_BODY_LANGUAGE, arc.planetOne);
+  const twoLife = requiredLabel(DAILY_BODY_LANGUAGE, arc.planetTwo);
   const oneThrough = requiredLabel(DAILY_THROUGH_POINTS, one.throughPoint.sign);
   const twoThrough = requiredLabel(DAILY_THROUGH_POINTS, two.throughPoint.sign);
-  const language = dailyAspectLanguage(arc.aspect, { oneName, twoName, oneCore, twoCore });
+  const language = dailyAspectLanguage(arc.aspect, { oneName, twoName, oneLife, twoLife });
+  const setting = one.throughPoint.sign === two.throughPoint.sign
+    ? `Both ${oneLife} and ${twoLife} are moving through ${oneThrough}.`
+    : `${capitalize(oneLife)} is moving through ${oneThrough}. At the same time, ${twoLife} is moving through ${twoThrough}.`;
 
   return {
     headline: language.headline,
-    current: `${oneName} is carrying ${oneCore} through ${oneThrough}, while ${twoName} is carrying ${twoCore} through ${twoThrough}. ${language.current}`,
+    current: `${setting} ${language.current}`,
     watchFor: language.watchFor,
-    alchemy: alignment,
+    alchemy: language.alchemy,
     withBodies: unique((exactitude.thematicLayers?.with || []).map(({ body }) => body)),
     whileBodies: unique((exactitude.thematicLayers?.while || []).map(({ body }) => body)),
   };
 }
 
 function dailyAspectLanguage(aspectKey, names) {
-  const { oneName, twoName, oneCore, twoCore } = names;
+  const { oneName, twoName, oneLife, twoLife } = names;
   const language = {
     conjunction: {
-      headline: `${oneName} and ${twoName} need one honest focus.`,
-      current: `Their conditions are concentrating around one shared assignment. The work is to let ${oneCore} and ${twoCore} occupy the same focus without allowing either one to disappear inside the other.`,
-      watchFor: `Watch for becoming so concentrated on one part of the situation that ${oneName} or ${twoName} quietly takes over the whole story.`,
+      headline: 'Everything is converging on one honest priority.',
+      current: 'Two needs are asking for the same attention. The choice is not which one matters; it is what they are meant to accomplish together.',
+      watchFor: `Tunnel vision. ${oneName} or ${twoName} can quietly take over the whole story.`,
+      alchemy: `Choose one clear priority. Let ${oneLife} and ${twoLife} serve it together without allowing either one to disappear.`,
     },
     semi_sextile: {
-      headline: `${oneName} needs something from ${twoName} before it can move cleanly.`,
-      current: `${oneName} wants to activate, but ${twoName} holds a requirement that has to be understood first. What looks like hesitation may actually be missing information about what the situation needs.`,
-      watchFor: `Watch for pushing ${oneCore} forward before the need carried by ${twoCore} has been named.`,
+      headline: 'Something small needs to be named before this can move.',
+      current: 'What looks like hesitation may actually be a missing requirement. The next step gets cleaner once the quiet need underneath it is acknowledged.',
+      watchFor: `Pushing ${oneName} forward before hearing what ${twoName} needs.`,
+      alchemy: `Name what ${twoLife} needs first. Then let ${oneLife} move only what can genuinely work with it.`,
     },
     sextile: {
-      headline: `${oneName} and ${twoName} can cooperate—if you participate.`,
-      current: `${oneCore} and ${twoCore} can work in tandem without losing their separate functions. The opening is real, but it does not organize or use itself.`,
-      watchFor: 'Watch for mistaking available cooperation for a finished result. An opportunity still needs a deliberate exchange.',
+      headline: 'The opening is real—but it needs your participation.',
+      current: 'Two parts of the situation can help one another without losing their separate jobs. Cooperation is available, but it will not organize itself.',
+      watchFor: 'Treating an available opportunity like a finished result.',
+      alchemy: `Create one deliberate exchange between ${oneLife} and ${twoLife}. Give the opening something useful to do.`,
     },
     square: {
-      headline: `${oneName} and ${twoName} both need room.`,
-      current: `${oneName} may be tempted to treat ${twoName} as the obstruction, even though both conditions are carrying legitimate needs. The pressure is asking for synchronization, not a winner.`,
-      watchFor: `Watch for using ${oneCore} to overpower, correct, or dismiss what ${twoCore} is trying to protect.`,
+      headline: 'Two real needs are competing for the same room.',
+      current: 'The pressure is not asking you to choose a winner. It is showing where two legitimate needs have not yet been given a way to function at the same time.',
+      watchFor: `Using ${oneName} to overpower, correct, or dismiss what ${twoName} is trying to protect.`,
+      alchemy: `Stop making one need defeat the other. Build a response that gives both ${oneLife} and ${twoLife} a workable role.`,
     },
     trine: {
-      headline: `${oneName} is flowing straight into ${twoName}. Give it a direction.`,
-      current: `${oneCore} is moving into ${twoCore} without an inherent interruption. That can feel easy or inevitable, but uninterrupted momentum still needs a conscious destination.`,
-      watchFor: 'Watch for letting momentum choose the outcome simply because nothing immediately stops it. Ease and usefulness are not the same thing.',
+      headline: 'Momentum is here. Direction is the question.',
+      current: 'Something is moving with very little resistance. That can feel easy or inevitable, but ease does not decide whether the destination is actually useful.',
+      watchFor: 'Letting momentum choose the outcome simply because nothing immediately stops it.',
+      alchemy: `Give the movement a destination. Aim ${oneLife} toward a result ${twoLife} can make useful.`,
     },
     quincunx: {
-      headline: `${oneName} and ${twoName} need different rooms, not a forced compromise.`,
-      current: `${oneCore} can lend something useful to ${twoCore}, but their conditions cannot occupy the same container. Separation is what lets both remain functional.`,
-      watchFor: `Watch for forcing ${oneName} and ${twoName} into one answer just to make the tension disappear.`,
+      headline: 'Not everything belongs in the same room.',
+      current: 'These needs can help one another, but they cannot do the same job or live inside the same answer. Separation is what keeps both of them honest and functional.',
+      watchFor: `Forcing ${oneName} and ${twoName} into one answer just to make the tension disappear.`,
+      alchemy: `Give ${oneLife} and ${twoLife} separate containers. Let them exchange what is useful without demanding a merger.`,
     },
     opposition: {
-      headline: `${oneName} and ${twoName} are showing both ends of the truth.`,
-      current: `${oneCore} and ${twoCore} occupy opposing but equally real positions. Their distance reveals what each side cannot see alone; balance comes through exchange, not fusion.`,
-      watchFor: `Watch for choosing one end of the situation and pretending the counterpoint carried by ${twoName} is no longer relevant.`,
+      headline: 'Both sides are telling the truth.',
+      current: 'The distance between two real positions is revealing what neither side can see alone. Balance comes through exchange—not by pretending the contrast is gone.',
+      watchFor: `Choosing one side and pretending the counterpoint carried by ${twoName} no longer matters.`,
+      alchemy: `Keep ${oneLife} and ${twoLife} visible. Let each side answer the blind spot in the other without collapsing the difference.`,
     },
   };
   return requiredLabel(language, aspectKey);
@@ -413,6 +444,10 @@ function joinList(values) {
 
 function lowerFirst(value) {
   return `${value}`.charAt(0).toLowerCase() + `${value}`.slice(1);
+}
+
+function capitalize(value) {
+  return `${value}`.charAt(0).toUpperCase() + `${value}`.slice(1);
 }
 
 function requiredLabel(catalog, key) {
