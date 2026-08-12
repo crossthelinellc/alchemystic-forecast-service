@@ -270,6 +270,7 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
       relativeLabel,
       display: dailyDateDisplay(key, timeZone),
       hasForecast: true,
+      eventLabel: lunarContext.eventLabel,
       headline: lunarContext.headline || primary.daily.headline,
       current: [phaseLead(primaryPhase), lunarContext.current, primary.daily.current].filter(Boolean).join(' '),
       watchFor: primary.daily.watchFor,
@@ -278,6 +279,11 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
       dominantTransitId: primary.id,
       dominantPhase: primaryPhase,
       pills,
+      card: {
+        current: lunarContext.current || primary.daily.current,
+        watchFor: primary.daily.watchFor,
+        alchemy: lunarContext.alchemy || primary.daily.alchemy,
+      },
       full: {
         current: primary.interpretation,
         alchemy: primary.alignment,
@@ -290,16 +296,33 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
 }
 
 function dailyLunarContext(event) {
-  if (!event) return { headline: '', current: '', alchemy: '' };
+  if (!event) return { eventLabel: '', headline: '', current: '', alchemy: '' };
   const isNamedLunarEvent = ['solar_eclipse', 'lunar_eclipse', 'new_moon', 'full_moon'].includes(event.kind);
-  if (!isNamedLunarEvent) return { headline: '', current: '', alchemy: '' };
+  if (!isNamedLunarEvent) return { eventLabel: '', headline: '', current: '', alchemy: '' };
   const highlightedNode = (event.nodeAxis || []).find(({ highlighted }) => highlighted);
+  const northern = event.eclipseOrientation === 'Northern';
+  const southern = event.eclipseOrientation === 'Southern';
   return {
-    headline: event.title || '',
+    eventLabel: event.title || event.phase || '',
+    headline: northern
+      ? 'The unfamiliar direction is asking for your participation.'
+      : southern
+        ? 'A familiar pattern is ready to be used differently.'
+        : event.phase === 'New Moon'
+          ? 'A new cycle is gathering around one clear intention.'
+          : event.phase === 'Full Moon'
+            ? 'Something has reached the point where it can be seen clearly.'
+            : '',
     current: highlightedNode
-      ? `This ${event.phase} is a ${event.title}. ${highlightedNode.label} is highlighted: ${highlightedNode.definition}`
-      : event.phase ? `This is a ${event.phase}.` : '',
-    alchemy: highlightedNode?.alchemy || '',
+      ? northern
+        ? 'The next direction may feel awkward precisely because it has not been practiced yet. Discomfort is information here—not proof that the path is wrong.'
+        : 'The familiar response may feel especially convincing right now. Its gift is real, but repeating it only for safety can keep the story exactly where it has been.'
+      : '',
+    alchemy: highlightedNode
+      ? northern
+        ? 'Take one small step toward the unfamiliar. Develop the energy slowly instead of copying an old version of it.'
+        : 'Keep the part of the familiar response that still has value. Release the reflex to reach for it only because you already know how.'
+      : '',
   };
 }
 
@@ -324,11 +347,11 @@ function phaseForDate(record, key) {
 
 function phaseLead(phase) {
   const leads = {
-    Activating: 'A new current has entered the room.',
-    Applying: 'The pressure is building toward a change in direction.',
-    'Point of Exactitude': 'This is a handoff day: the current changes direction.',
-    Separating: 'The handoff has happened, and the other side of the current is moving through.',
-    Releasing: 'This current is making its final push before it lets go.',
+    Activating: 'A new theme is making itself known.',
+    Applying: 'This is building. Notice what keeps asking for your attention.',
+    'Point of Exactitude': 'The emphasis turns here: what has been leading begins to receive.',
+    Separating: 'The shift has happened. What you do in response matters now.',
+    Releasing: 'This is making one last clear statement before it loosens its grip.',
   };
   return leads[phase] || '';
 }

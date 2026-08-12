@@ -168,10 +168,12 @@ test('builds Yesterday, Today, and Tomorrow from interpreted active currents', (
   ]);
   assert.equal(feed.dailyForecasts[1].hasForecast, true);
   assert.equal(feed.dailyForecasts[1].dominantPhase, 'Point of Exactitude');
-  assert.match(feed.dailyForecasts[1].current, /handoff day/);
+  assert.match(feed.dailyForecasts[1].current, /emphasis turns here/);
   assert.equal(feed.dailyForecasts[1].headline, 'Pallas and Mercury both need room.');
   assert.equal(feed.dailyForecasts[1].pills[0].role, 'dominant');
   assert.equal(feed.dailyForecasts[1].pills[0].recordId, feed.calendar.records[0].id);
+  assert.equal(feed.dailyForecasts[1].card.current, 'Strategy and the message are pressing on one another.');
+  assert.equal(feed.dailyForecasts[1].card.watchFor, 'Watch for making either condition the enemy.');
   assert.equal(feed.dailyForecasts[1].full.alchemy, 'Make sure the plan and the words solve the same problem.');
 });
 
@@ -261,10 +263,13 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
     { title: 'Forced Northern Solar Eclipse', phase: 'New Moon', astronomicalLabel: 'Total Solar Eclipse', relevantNodeKey: 'mean_north_node', dateKey: '2026-08-12' },
     { title: 'True Southern Lunar Eclipse', phase: 'Full Moon', astronomicalLabel: 'Partial Lunar Eclipse', relevantNodeKey: 'mean_south_node', dateKey: '2026-08-27' },
   ]);
-  assert.equal(feed.dailyForecasts[1].headline, 'Forced Northern Solar Eclipse');
-  assert.match(feed.dailyForecasts[1].current, /This New Moon is a Forced Northern Solar Eclipse/);
-  assert.match(feed.dailyForecasts[1].current, /Mean North Node is highlighted/);
-  assert.match(feed.dailyForecasts[1].alchemy, /Lean into the discomfort slowly/);
+  assert.equal(feed.dailyForecasts[1].eventLabel, 'Forced Northern Solar Eclipse');
+  assert.equal(feed.dailyForecasts[1].headline, 'The unfamiliar direction is asking for your participation.');
+  assert.match(feed.dailyForecasts[1].current, /Discomfort is information/);
+  assert.doesNotMatch(feed.dailyForecasts[1].current, /Mean North Node is highlighted/);
+  assert.match(feed.dailyForecasts[1].alchemy, /one small step toward the unfamiliar/);
+  assert.match(feed.dailyForecasts[1].card.current, /Discomfort is information/);
+  assert.doesNotMatch(feed.dailyForecasts[1].card.current, /emphasis turns here/);
 });
 
 test('publishes all five intermediate Sun-Moon aspects as complete Lunar Event arcs', () => {
