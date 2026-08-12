@@ -98,8 +98,9 @@ Artifact Registry image name. The deployed container must receive
 secret `NATAL_CALCULATION_TOKEN`. Cloud Run supplies `PORT` automatically.
 
 `generate-static-feed.mjs` runs the same production service contract once and writes a Pages-ready
-artifact at `dist/api/alchemystic-forecast.json`. The public source repository runs it on a
-three-hour schedule using a standard GitHub-hosted runner. Store-approved interpretations belong in
+artifact at `dist/api/alchemystic-forecast.json`. The public source repository runs it once daily,
+just after the Mystic Rebels calendar date changes, using a standard GitHub-hosted runner. Pushes
+that change the engine, workflow, or editorial records still regenerate it immediately. Store-approved interpretations belong in
 `editorial.json`; until an Aspect Arc has approved copy there, it remains available as factual
 calendar timing but is not promoted into the interpreted homepage week.
 
