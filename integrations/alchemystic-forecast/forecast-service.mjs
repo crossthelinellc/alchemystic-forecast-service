@@ -173,7 +173,7 @@ export function createProductionService(env = process.env) {
   const sourceUrl = requiredEnvironment(env, 'ALCHEMYSTIC_SOURCE_URL');
   const editorialJson = env.ALCHEMYSTIC_EDITORIAL_JSON;
   const editorialPath = env.ALCHEMYSTIC_EDITORIAL_PATH;
-  const natalCalculationToken = requiredEnvironment(env, 'NATAL_CALCULATION_TOKEN');
+  const natalCalculationToken = env.NATAL_CALCULATION_TOKEN;
   if (!editorialJson && !editorialPath) {
     throw new Error('ALCHEMYSTIC_EDITORIAL_JSON or ALCHEMYSTIC_EDITORIAL_PATH is required.');
   }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createForecastService, startOfDayInTimeZone } from './forecast-service.mjs';
+import { createForecastService, createProductionService, startOfDayInTimeZone } from './forecast-service.mjs';
 
 async function request(handler, {
   url = '/api/alchemystic-forecast', method = 'GET', headers = {}, body = '',
@@ -46,6 +46,22 @@ test('serves authenticated Swiss natal calculation without exposing it publicly'
   });
   assert.equal(response.status, 200);
   assert.equal(JSON.parse(response.body).ephemeris, 'swiss');
+});
+
+test('lets the universal forecast publisher initialize without enabling the natal route', async () => {
+  const handler = createProductionService({
+    SWETEST_BIN: '/tmp/swetest',
+    SWISSEPH_PATH: '/tmp/ephe',
+    ALCHEMYSTIC_SOURCE_URL: 'https://code.example.com/alchemystic-forecast',
+    ALCHEMYSTIC_EDITORIAL_JSON: '{}',
+  });
+
+  const response = await request(handler, {
+    url: '/api/alchemystic-natal-chart',
+    method: 'POST',
+    body: '{}',
+  });
+  assert.equal(response.status, 404);
 });
 
 test('serves a cached, conditional forecast only to Mystic Rebels storefront origins', async () => {
