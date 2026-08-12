@@ -81,11 +81,11 @@ const DAILY_BODY_LANGUAGE = Object.freeze({
   chiron: 'the tender place asking for a wiser response',
   vesta: 'the purpose that deserves your devotion',
   juno: 'the agreement you are willing to live inside',
-  ceres: 'what needs care, sustenance, and enough support to continue',
-  pallas: 'the pattern you can see and the strategy it suggests',
+  ceres: 'care, nourishment, and enough support to continue',
+  pallas: 'pattern recognition and the strategy it suggests',
   mean_black_moon_lilith: 'the truth or desire that will not keep asking permission',
-  mean_north_node: 'the unfamiliar direction asking to be developed',
-  mean_south_node: 'the familiar pattern that comes easily but cannot lead forever',
+  mean_north_node: 'an unfamiliar direction asking to be developed',
+  mean_south_node: 'a familiar pattern that comes easily but cannot lead forever',
 });
 
 export async function buildFoundationalTranslations({ forecast, positionProvider }) {
@@ -170,6 +170,7 @@ function dailyTranslationForDossier(dossier) {
   return {
     headline: language.headline,
     current: `${setting} ${language.current}`,
+    cardCurrent: language.current,
     watchFor: language.watchFor,
     alchemy: language.alchemy,
     withBodies: unique((exactitude.thematicLayers?.with || []).map(({ body }) => body)),
@@ -208,7 +209,7 @@ function dailyAspectLanguage(aspectKey, names) {
       headline: 'Momentum is here. Direction is the question.',
       current: 'Something is moving with very little resistance. That can feel easy or inevitable, but ease does not decide whether the destination is actually useful.',
       watchFor: 'Letting momentum choose the outcome simply because nothing immediately stops it.',
-      alchemy: `Give the movement a destination. Aim ${oneLife} toward a result ${twoLife} can make useful.`,
+      alchemy: `Give the movement a destination. Aim ${oneLife} toward a result that ${twoLife} can make useful.`,
     },
     quincunx: {
       headline: 'Not everything belongs in the same room.',

@@ -280,7 +280,7 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
       dominantPhase: primaryPhase,
       pills,
       card: {
-        current: lunarContext.current || primary.daily.current,
+        current: lunarContext.current || primary.daily.cardCurrent || primary.daily.current,
         watchFor: primary.daily.watchFor,
         alchemy: lunarContext.alchemy || primary.daily.alchemy,
       },
