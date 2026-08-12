@@ -257,7 +257,7 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
     }
     const primaryPhase = phaseForDate(primary, key);
     const lunarEvent = lunarEventsByRecord.get(primary.id);
-    const lunarContext = dailyLunarContext(lunarEvent);
+    const lunarContext = dailyLunarContext(lunarEvent, primaryPhase);
     const pills = active.slice(0, 9).map((record, index) => ({
       recordId: record.id,
       label: `${record.planetOne} ${record.aspect} ${record.planetTwo}`,
@@ -295,28 +295,33 @@ function buildDailyForecasts(records, lunarEvents, currentTime, timeZone) {
   });
 }
 
-function dailyLunarContext(event) {
+function dailyLunarContext(event, phase) {
   if (!event) return { eventLabel: '', headline: '', current: '', alchemy: '' };
   const isNamedLunarEvent = ['solar_eclipse', 'lunar_eclipse', 'new_moon', 'full_moon'].includes(event.kind);
   if (!isNamedLunarEvent) return { eventLabel: '', headline: '', current: '', alchemy: '' };
   const highlightedNode = (event.nodeAxis || []).find(({ highlighted }) => highlighted);
   const northern = event.eclipseOrientation === 'Northern';
   const southern = event.eclipseOrientation === 'Southern';
+  const eclipseStage = northern || southern ? eclipseStageTranslation(event.eclipseOrientation, phase) : null;
   return {
     eventLabel: event.title || event.phase || '',
-    headline: northern
-      ? 'The unfamiliar direction is asking for your participation.'
-      : southern
-        ? 'A familiar pattern is ready to be used differently.'
+    headline: eclipseStage
+      ? eclipseStage.headline
+      : northern
+        ? 'The unfamiliar direction is asking for your participation.'
+        : southern
+          ? 'A familiar pattern is ready to be used differently.'
         : event.phase === 'New Moon'
           ? 'A new cycle is gathering around one clear intention.'
           : event.phase === 'Full Moon'
             ? 'Something has reached the point where it can be seen clearly.'
             : '',
-    current: highlightedNode
-      ? northern
-        ? 'The next direction may feel awkward precisely because it has not been practiced yet. Discomfort is information here—not proof that the path is wrong.'
-        : 'The familiar response may feel especially convincing right now. Its gift is real, but repeating it only for safety can keep the story exactly where it has been.'
+    current: eclipseStage
+      ? eclipseStage.current
+      : highlightedNode
+        ? northern
+          ? 'The next direction may feel awkward precisely because it has not been practiced yet. Discomfort is information here—not proof that the path is wrong.'
+          : 'The familiar response may feel especially convincing right now. Its gift is real, but repeating it only for safety can keep the story exactly where it has been.'
       : '',
     alchemy: highlightedNode
       ? northern
@@ -324,6 +329,56 @@ function dailyLunarContext(event) {
         : 'Keep the part of the familiar response that still has value. Release the reflex to reach for it only because you already know how.'
       : '',
   };
+}
+
+function eclipseStageTranslation(orientation, phase) {
+  const translations = {
+    Northern: {
+      Activating: {
+        headline: 'The unfamiliar path is beginning to pull.',
+        current: 'Expect an unfamiliar option to ask for attention. It may feel awkward because it has not been practiced yet—not because it is wrong.',
+      },
+      Applying: {
+        headline: 'The unfamiliar choice is gaining momentum.',
+        current: 'What has not been tried yet may feel increasingly difficult to ignore. Curiosity is more useful than demanding certainty before taking the first step.',
+      },
+      'Point of Exactitude': {
+        headline: 'The unfamiliar path is asking for action.',
+        current: 'The pull toward a less familiar response is strongest now. Discomfort is information here—not proof that the path is wrong.',
+      },
+      Separating: {
+        headline: 'The new direction needs a real response.',
+        current: 'The opening has already shown itself. Expect the tension to move from noticing the unfamiliar option to deciding what you will actually do with it.',
+      },
+      Releasing: {
+        headline: 'Choose what continues from here.',
+        current: 'The pressure is beginning to ease, but the unfamiliar option still needs a deliberate next step if it is going to become part of your life.',
+      },
+    },
+    Southern: {
+      Activating: {
+        headline: 'The familiar response is getting louder.',
+        current: 'Expect an old response to become harder to ignore. Notice what it protects before deciding whether it still belongs in the story.',
+      },
+      Applying: {
+        headline: 'The pull toward the familiar is building.',
+        current: 'What feels known or safe may become especially convincing. Familiarity can reveal what still has value, but it does not automatically make the response useful.',
+      },
+      'Point of Exactitude': {
+        headline: 'The familiar choice is at a turning point.',
+        current: 'The pull toward the familiar is strongest now. Keep what still has value, but do not repeat the rest simply because you already know how.',
+      },
+      Separating: {
+        headline: 'The old response is showing its consequences.',
+        current: 'The strongest pressure has passed, making it easier to see what the familiar response preserved and what it kept from changing.',
+      },
+      Releasing: {
+        headline: 'The old pattern is making its final pass.',
+        current: 'Expect one last echo of the familiar response before the pressure loosens. Treat it as confirmation of what you have learned—not as a command to repeat it.',
+      },
+    },
+  };
+  return translations[orientation]?.[phase] || null;
 }
 
 function dailyPriority(record, key) {
