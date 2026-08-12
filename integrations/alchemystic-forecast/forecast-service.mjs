@@ -62,10 +62,7 @@ export function createForecastService({
     ]);
     const feed = presentForecast({
       forecast,
-      interpretations: {
-        ...foundationalInterpretations,
-        ...approvedInterpretations,
-      },
+      interpretations: mergeInterpretations(foundationalInterpretations, approvedInterpretations),
       eclipses,
       lunarSnapshots,
       now: current,
@@ -154,6 +151,18 @@ export function createForecastService({
       json(response, 503, { error: 'Forecast temporarily unavailable' });
     }
   };
+}
+
+function mergeInterpretations(foundational, approved) {
+  const merged = { ...foundational };
+  Object.entries(approved || {}).forEach(([occurrenceId, editorial]) => {
+    merged[occurrenceId] = {
+      ...foundational[occurrenceId],
+      ...editorial,
+      daily: editorial?.daily || foundational[occurrenceId]?.daily,
+    };
+  });
+  return merged;
 }
 
 async function lunarExactitudeSnapshots(arcs, positionProvider) {
