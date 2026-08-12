@@ -265,13 +265,15 @@ test('publishes separate Alchemystic and astronomical eclipse classifications', 
     { title: 'True Southern Lunar Eclipse', phase: 'Full Moon', astronomicalLabel: 'Partial Lunar Eclipse', relevantNodeKey: 'mean_south_node', dateKey: '2026-08-27' },
   ]);
   assert.equal(feed.dailyForecasts[1].eventLabel, 'Forced Northern Solar Eclipse');
-  assert.equal(feed.dailyForecasts[1].headline, 'The unfamiliar direction is asking for your participation.');
+  assert.equal(feed.dailyForecasts[1].headline, 'The unfamiliar path is asking for action.');
   assert.match(feed.dailyForecasts[1].current, /Discomfort is information/);
   assert.doesNotMatch(feed.dailyForecasts[1].current, /Mean North Node is highlighted/);
   assert.match(feed.dailyForecasts[1].alchemy, /one small step toward the unfamiliar/);
   assert.match(feed.dailyForecasts[1].card.current, /Discomfort is information/);
   assert.doesNotMatch(feed.dailyForecasts[1].card.current, /emphasis turns here/);
   assert.doesNotMatch(feed.dailyForecasts[1].current, /new theme|emphasis turns|building|shift has happened|last clear statement/i);
+  assert.equal(new Set(feed.dailyForecasts.map(({ headline }) => headline)).size, 3);
+  assert.equal(new Set(feed.dailyForecasts.map(({ card }) => card.current)).size, 3);
 });
 
 test('publishes all five intermediate Sun-Moon aspects as complete Lunar Event arcs', () => {
